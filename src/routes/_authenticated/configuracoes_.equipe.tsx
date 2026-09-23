@@ -64,11 +64,14 @@ function TeamPage() {
   };
 
   const toggleAdmin = async (p: Tables<"profiles">, isAdm: boolean) => {
+    if (isAdm && !rolesOf(p.id).includes("operador")) {
+      const { error: e1 } = await supabase.from("user_roles").insert({ user_id: p.id, workspace_id: p.workspace_id, role: "operador" });
+      if (e1) return toast.error(friendlyError(e1));
+    }
     const { error } = isAdm
       ? await supabase.from("user_roles").delete().eq("user_id", p.id).eq("role", "admin")
       : await supabase.from("user_roles").insert({ user_id: p.id, workspace_id: p.workspace_id, role: "admin" });
     if (error) return toast.error(friendlyError(error));
-    if (isAdm && !rolesOf(p.id).includes("operador")) await supabase.from("user_roles").insert({ user_id: p.id, workspace_id: p.workspace_id, role: "operador" });
     toast.success("Função atualizada."); invalidate("user_roles");
   };
 
