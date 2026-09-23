@@ -145,7 +145,7 @@ export function ImportWizard({ resumeBatch }: { resumeBatch?: string }) {
     }
   };
 
-  const ensureExisting = async () => existing ?? (await fetchExistingLeads().then((x) => { setExisting(x); return x; }));
+  const ensureExisting = async (): Promise<ExistingLead[]> => existing ?? (await fetchExistingLeads().then((x) => { setExisting(x); return x; }));
 
   const patchRows = async (changed: StagedRow[]) => {
     const map = new Map(changed.map((r) => [r.id, r]));
