@@ -78,7 +78,7 @@ export function LeadsView({ forceKanban }: { forceKanban?: boolean }) {
 
   const F = ({ k, label, items }: { k: keyof typeof fl; label: string; items: { value: string; label: string }[] }) => (
     <Select value={fl[k]} onValueChange={(v) => setFl({ ...fl, [k]: v })}>
-      <SelectTrigger className={cn("h-9 w-full sm:w-40", fl[k] !== ALL && "border-gold")}><SelectValue placeholder={label} /></SelectTrigger>
+      <SelectTrigger className={cn("h-9 w-[calc(50%-0.25rem)] sm:w-40", fl[k] !== ALL && "border-gold")}><SelectValue placeholder={label} /></SelectTrigger>
       <SelectContent>
         <SelectItem value={ALL}>{label}: todos</SelectItem>
         {items.map((i) => <SelectItem key={i.value} value={i.value}>{i.label}</SelectItem>)}
@@ -117,7 +117,7 @@ export function LeadsView({ forceKanban }: { forceKanban?: boolean }) {
             <Input placeholder="Buscar empresa, cidade, telefone..." value={q} onChange={(e) => setQ(e.target.value)} className="h-9 w-full sm:w-64" />
             <F k="status" label="Status" items={LEAD_STATUS} />
             <F k="priority" label="Prioridade" items={PRIORITIES.map((p) => ({ value: p, label: p }))} />
-            <Input placeholder="Score mín." inputMode="decimal" value={minScore} onChange={(e) => setMinScore(e.target.value.replace(/[^\d.]/g, ""))} className="h-9 w-full sm:w-28" />
+            <Input placeholder="Score mín." inputMode="decimal" value={minScore} onChange={(e) => setMinScore(e.target.value.replace(/[^\d.]/g, ""))} className="h-9 w-[calc(50%-0.25rem)] sm:w-28" />
             <F k="city" label="Cidade" items={uniq("city").map((c) => ({ value: c, label: c }))} />
             <F k="niche" label="Nicho" items={uniq("niche").map((c) => ({ value: c, label: c }))} />
             <F k="garimpo" label="Garimpo" items={(garimpos ?? []).map((g) => ({ value: g.id, label: g.name }))} />
@@ -125,7 +125,7 @@ export function LeadsView({ forceKanban }: { forceKanban?: boolean }) {
             <F k="site" label="Site" items={WEBSITE_STATUS} />
             {view === "tabela" && (
               <Select value={sort} onValueChange={setSort}>
-                <SelectTrigger className="h-9 w-full sm:w-48"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="h-9 w-[calc(50%-0.25rem)] sm:w-48"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="score">Ordenar: Score</SelectItem>
                   <SelectItem value="priority">Ordenar: Prioridade</SelectItem>
