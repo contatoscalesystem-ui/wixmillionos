@@ -9,17 +9,20 @@ type AuthCtx = {
   profile: Tables<"profiles"> | null;
   role: "admin" | "operador" | null;
   refreshProfile: () => Promise<void>;
+  /** true once profile/role were loaded for the current session */
+  checked: boolean;
 };
-const Ctx = createContext<AuthCtx>({ session: null, loading: true, profile: null, role: null, refreshProfile: async () => {} });
+const Ctx = createContext<AuthCtx>({ session: null, loading: true, profile: null, role: null, refreshProfile: async () => {}, checked: false });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<Tables<"profiles"> | null>(null);
   const [role, setRole] = useState<AuthCtx["role"]>(null);
+  const [checkedUid, setCheckedUid] = useState<string | null>(null);
 
   const loadProfile = async (uid?: string) => {
-    if (!uid) { setProfile(null); setRole(null); return; }
+    if (!uid) { setProfile(null); setRole(null); setCheckedUid(null); return; }
     const [{ data: p }, { data: r }] = await Promise.all([
       supabase.from("profiles").select("*").eq("id", uid).maybeSingle(),
       supabase.from("user_roles").select("role").eq("user_id", uid),
@@ -31,6 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     setProfile(r?.length ? (p ?? null) : null);
     setRole(r?.some((x) => x.role === "admin") ? "admin" : r?.length ? "operador" : null);
+    setCheckedUid(uid);
   };
 
   useEffect(() => {
@@ -47,7 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <Ctx.Provider value={{ session, loading, profile, role, refreshProfile: () => loadProfile(session?.user.id) }}>
+    <Ctx.Provider value={{ session, loading, profile, role, refreshProfile: () => loadProfile(session?.user.id), checked: !!session && checkedUid === session.user.id }}>
       {children}
     </Ctx.Provider>
   );

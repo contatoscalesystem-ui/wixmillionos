@@ -27,7 +27,7 @@ const NAV = [
 ] as const;
 
 function AppLayout() {
-  const { session, loading, profile, role } = useAuth();
+  const { session, loading, profile, role, checked } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -44,6 +44,19 @@ function AppLayout() {
         <div className="flex-1 space-y-4 p-8">
           <Skeleton className="h-8 w-64" />
           <Skeleton className="h-32 w-full" />
+        </div>
+      </div>
+    );
+  }
+
+  if (checked && !role) {
+    return (
+      <div className="flex min-h-screen items-center justify-center p-6">
+        <div className="max-w-sm space-y-3 text-center">
+          <div className="text-sm font-semibold tracking-[0.3em] text-gold">WIX MILLION OS</div>
+          <h1 className="text-xl font-bold">Sem acesso ao espaço de trabalho</h1>
+          <p className="text-sm text-muted-foreground">Sua conta não possui acesso liberado. Novos acessos são liberados somente por convite de um administrador.</p>
+          <button className="text-sm underline" onClick={async () => { await supabase.auth.signOut(); navigate({ to: "/login" }); }}>Sair</button>
         </div>
       </div>
     );
