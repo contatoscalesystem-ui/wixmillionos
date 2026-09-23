@@ -186,7 +186,7 @@ export function LeadsView({ forceKanban }: { forceKanban?: boolean }) {
               {rows.length ? `${rows.length} ${rows.length === 1 ? "lead encontrado" : "leads encontrados"}` : "Nenhum lead encontrado com esses filtros."}
             </p>
           )}
-          {view === "kanban" && arch === "ativos" ? <Kanban leads={rows} /> : !rows.length ? (
+          {view === "kanban" && arch === "ativos" ? <Kanban leads={rows} statusFilter={applied.fl.status !== ALL ? (applied.fl.status as Lead["status"]) : null} /> : !rows.length ? (
             <EmptyState title="Nenhum lead encontrado com esses filtros." />
           ) : (
             <div className="overflow-x-auto rounded-lg border bg-card">
