@@ -71,7 +71,7 @@ async function readPdf(f: File): Promise<ReadResult> {
   pdfjs.GlobalWorkerOptions.workerSrc = worker.default;
   let doc: Awaited<ReturnType<typeof pdfjs.getDocument>["promise"]>;
   try {
-    doc = await pdfjs.getDocument({ data: new Uint8Array(await f.arrayBuffer()), isEvalSupported: false }).promise;
+    doc = await pdfjs.getDocument({ data: new Uint8Array(await f.arrayBuffer()) }).promise;
   } catch {
     throw new ReadError("Não foi possível ler este PDF. Utilize TXT, Markdown, CSV, XLSX ou cole o conteúdo.");
   }
