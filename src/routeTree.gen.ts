@@ -18,13 +18,16 @@ import { Route as AuthenticatedClientesRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedConfiguracoesRouteImport } from './routes/_authenticated/configuracoes'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedFinanceiroRouteImport } from './routes/_authenticated/financeiro'
-import { Route as AuthenticatedGarimposRouteImport } from './routes/_authenticated/garimpos'
 import { Route as AuthenticatedPipelineRouteImport } from './routes/_authenticated/pipeline'
 import { Route as AuthenticatedProducaoRouteImport } from './routes/_authenticated/producao'
 import { Route as AuthenticatedRecuperacaoRouteImport } from './routes/_authenticated/recuperacao'
 import { Route as AuthenticatedConfiguracoesEquipeRouteImport } from './routes/_authenticated/configuracoes_.equipe'
+import { Route as AuthenticatedGarimposIndexRouteImport } from './routes/_authenticated/garimpos.index'
+import { Route as AuthenticatedGarimposIdRouteImport } from './routes/_authenticated/garimpos.$id'
+import { Route as AuthenticatedGarimposImportarRouteImport } from './routes/_authenticated/garimpos.importar'
 import { Route as AuthenticatedLeadsIndexRouteImport } from './routes/_authenticated/leads.index'
 import { Route as AuthenticatedLeadsIdRouteImport } from './routes/_authenticated/leads.$id'
+import { Route as AuthenticatedGarimposLotesIdRouteImport } from './routes/_authenticated/garimpos.lotes.$id'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -71,11 +74,6 @@ const AuthenticatedFinanceiroRoute = AuthenticatedFinanceiroRouteImport.update({
   path: '/financeiro',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedGarimposRoute = AuthenticatedGarimposRouteImport.update({
-  id: '/garimpos',
-  path: '/garimpos',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
 const AuthenticatedPipelineRoute = AuthenticatedPipelineRouteImport.update({
   id: '/pipeline',
   path: '/pipeline',
@@ -98,6 +96,23 @@ const AuthenticatedConfiguracoesEquipeRoute =
     path: '/configuracoes/equipe',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedGarimposIndexRoute =
+  AuthenticatedGarimposIndexRouteImport.update({
+    id: '/garimpos/',
+    path: '/garimpos/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedGarimposIdRoute = AuthenticatedGarimposIdRouteImport.update({
+  id: '/garimpos/$id',
+  path: '/garimpos/$id',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedGarimposImportarRoute =
+  AuthenticatedGarimposImportarRouteImport.update({
+    id: '/garimpos/importar',
+    path: '/garimpos/importar',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedLeadsIndexRoute = AuthenticatedLeadsIndexRouteImport.update({
   id: '/leads/',
   path: '/leads/',
@@ -108,6 +123,12 @@ const AuthenticatedLeadsIdRoute = AuthenticatedLeadsIdRouteImport.update({
   path: '/leads/$id',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedGarimposLotesIdRoute =
+  AuthenticatedGarimposLotesIdRouteImport.update({
+    id: '/garimpos/lotes/$id',
+    path: '/garimpos/lotes/$id',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -118,13 +139,16 @@ export interface FileRoutesByFullPath {
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/financeiro': typeof AuthenticatedFinanceiroRoute
-  '/garimpos': typeof AuthenticatedGarimposRoute
   '/pipeline': typeof AuthenticatedPipelineRoute
   '/producao': typeof AuthenticatedProducaoRoute
   '/recuperacao': typeof AuthenticatedRecuperacaoRoute
   '/configuracoes/equipe': typeof AuthenticatedConfiguracoesEquipeRoute
+  '/garimpos/$id': typeof AuthenticatedGarimposIdRoute
+  '/garimpos/importar': typeof AuthenticatedGarimposImportarRoute
   '/leads/$id': typeof AuthenticatedLeadsIdRoute
+  '/garimpos/': typeof AuthenticatedGarimposIndexRoute
   '/leads/': typeof AuthenticatedLeadsIndexRoute
+  '/garimpos/lotes/$id': typeof AuthenticatedGarimposLotesIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -135,13 +159,16 @@ export interface FileRoutesByTo {
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/financeiro': typeof AuthenticatedFinanceiroRoute
-  '/garimpos': typeof AuthenticatedGarimposRoute
   '/pipeline': typeof AuthenticatedPipelineRoute
   '/producao': typeof AuthenticatedProducaoRoute
   '/recuperacao': typeof AuthenticatedRecuperacaoRoute
   '/configuracoes/equipe': typeof AuthenticatedConfiguracoesEquipeRoute
+  '/garimpos/$id': typeof AuthenticatedGarimposIdRoute
+  '/garimpos/importar': typeof AuthenticatedGarimposImportarRoute
   '/leads/$id': typeof AuthenticatedLeadsIdRoute
+  '/garimpos': typeof AuthenticatedGarimposIndexRoute
   '/leads': typeof AuthenticatedLeadsIndexRoute
+  '/garimpos/lotes/$id': typeof AuthenticatedGarimposLotesIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -154,13 +181,16 @@ export interface FileRoutesById {
   '/_authenticated/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/financeiro': typeof AuthenticatedFinanceiroRoute
-  '/_authenticated/garimpos': typeof AuthenticatedGarimposRoute
   '/_authenticated/pipeline': typeof AuthenticatedPipelineRoute
   '/_authenticated/producao': typeof AuthenticatedProducaoRoute
   '/_authenticated/recuperacao': typeof AuthenticatedRecuperacaoRoute
   '/_authenticated/configuracoes_/equipe': typeof AuthenticatedConfiguracoesEquipeRoute
+  '/_authenticated/garimpos/$id': typeof AuthenticatedGarimposIdRoute
+  '/_authenticated/garimpos/importar': typeof AuthenticatedGarimposImportarRoute
   '/_authenticated/leads/$id': typeof AuthenticatedLeadsIdRoute
+  '/_authenticated/garimpos/': typeof AuthenticatedGarimposIndexRoute
   '/_authenticated/leads/': typeof AuthenticatedLeadsIndexRoute
+  '/_authenticated/garimpos/lotes/$id': typeof AuthenticatedGarimposLotesIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -173,13 +203,16 @@ export interface FileRouteTypes {
     | '/configuracoes'
     | '/dashboard'
     | '/financeiro'
-    | '/garimpos'
     | '/pipeline'
     | '/producao'
     | '/recuperacao'
     | '/configuracoes/equipe'
+    | '/garimpos/$id'
+    | '/garimpos/importar'
     | '/leads/$id'
+    | '/garimpos/'
     | '/leads/'
+    | '/garimpos/lotes/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -190,13 +223,16 @@ export interface FileRouteTypes {
     | '/configuracoes'
     | '/dashboard'
     | '/financeiro'
-    | '/garimpos'
     | '/pipeline'
     | '/producao'
     | '/recuperacao'
     | '/configuracoes/equipe'
+    | '/garimpos/$id'
+    | '/garimpos/importar'
     | '/leads/$id'
+    | '/garimpos'
     | '/leads'
+    | '/garimpos/lotes/$id'
   id:
     | '__root__'
     | '/'
@@ -208,13 +244,16 @@ export interface FileRouteTypes {
     | '/_authenticated/configuracoes'
     | '/_authenticated/dashboard'
     | '/_authenticated/financeiro'
-    | '/_authenticated/garimpos'
     | '/_authenticated/pipeline'
     | '/_authenticated/producao'
     | '/_authenticated/recuperacao'
     | '/_authenticated/configuracoes_/equipe'
+    | '/_authenticated/garimpos/$id'
+    | '/_authenticated/garimpos/importar'
     | '/_authenticated/leads/$id'
+    | '/_authenticated/garimpos/'
     | '/_authenticated/leads/'
+    | '/_authenticated/garimpos/lotes/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -288,13 +327,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedFinanceiroRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/garimpos': {
-      id: '/_authenticated/garimpos'
-      path: '/garimpos'
-      fullPath: '/garimpos'
-      preLoaderRoute: typeof AuthenticatedGarimposRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/pipeline': {
       id: '/_authenticated/pipeline'
       path: '/pipeline'
@@ -323,6 +355,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedConfiguracoesEquipeRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/garimpos/': {
+      id: '/_authenticated/garimpos/'
+      path: '/garimpos'
+      fullPath: '/garimpos/'
+      preLoaderRoute: typeof AuthenticatedGarimposIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/garimpos/$id': {
+      id: '/_authenticated/garimpos/$id'
+      path: '/garimpos/$id'
+      fullPath: '/garimpos/$id'
+      preLoaderRoute: typeof AuthenticatedGarimposIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/garimpos/importar': {
+      id: '/_authenticated/garimpos/importar'
+      path: '/garimpos/importar'
+      fullPath: '/garimpos/importar'
+      preLoaderRoute: typeof AuthenticatedGarimposImportarRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/leads/': {
       id: '/_authenticated/leads/'
       path: '/leads'
@@ -337,6 +390,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedLeadsIdRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/garimpos/lotes/$id': {
+      id: '/_authenticated/garimpos/lotes/$id'
+      path: '/garimpos/lotes/$id'
+      fullPath: '/garimpos/lotes/$id'
+      preLoaderRoute: typeof AuthenticatedGarimposLotesIdRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
   }
 }
 
@@ -347,13 +407,16 @@ interface AuthenticatedRouteChildren {
   AuthenticatedConfiguracoesRoute: typeof AuthenticatedConfiguracoesRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedFinanceiroRoute: typeof AuthenticatedFinanceiroRoute
-  AuthenticatedGarimposRoute: typeof AuthenticatedGarimposRoute
   AuthenticatedPipelineRoute: typeof AuthenticatedPipelineRoute
   AuthenticatedProducaoRoute: typeof AuthenticatedProducaoRoute
   AuthenticatedRecuperacaoRoute: typeof AuthenticatedRecuperacaoRoute
   AuthenticatedConfiguracoesEquipeRoute: typeof AuthenticatedConfiguracoesEquipeRoute
+  AuthenticatedGarimposIdRoute: typeof AuthenticatedGarimposIdRoute
+  AuthenticatedGarimposImportarRoute: typeof AuthenticatedGarimposImportarRoute
   AuthenticatedLeadsIdRoute: typeof AuthenticatedLeadsIdRoute
+  AuthenticatedGarimposIndexRoute: typeof AuthenticatedGarimposIndexRoute
   AuthenticatedLeadsIndexRoute: typeof AuthenticatedLeadsIndexRoute
+  AuthenticatedGarimposLotesIdRoute: typeof AuthenticatedGarimposLotesIdRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
@@ -363,13 +426,16 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedConfiguracoesRoute: AuthenticatedConfiguracoesRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedFinanceiroRoute: AuthenticatedFinanceiroRoute,
-  AuthenticatedGarimposRoute: AuthenticatedGarimposRoute,
   AuthenticatedPipelineRoute: AuthenticatedPipelineRoute,
   AuthenticatedProducaoRoute: AuthenticatedProducaoRoute,
   AuthenticatedRecuperacaoRoute: AuthenticatedRecuperacaoRoute,
   AuthenticatedConfiguracoesEquipeRoute: AuthenticatedConfiguracoesEquipeRoute,
+  AuthenticatedGarimposIdRoute: AuthenticatedGarimposIdRoute,
+  AuthenticatedGarimposImportarRoute: AuthenticatedGarimposImportarRoute,
   AuthenticatedLeadsIdRoute: AuthenticatedLeadsIdRoute,
+  AuthenticatedGarimposIndexRoute: AuthenticatedGarimposIndexRoute,
   AuthenticatedLeadsIndexRoute: AuthenticatedLeadsIndexRoute,
+  AuthenticatedGarimposLotesIdRoute: AuthenticatedGarimposLotesIdRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(

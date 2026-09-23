@@ -6,11 +6,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ConfirmDialog, EmptyState, PageHeader } from "@/components/crm";
-import { GarimpoForm, ImportSoonDialog } from "@/components/garimpo-form";
+import { GarimpoForm } from "@/components/garimpo-form";
 import { GARIMPO_STATUS, fmtDate, friendlyError, labelOf, type Garimpo } from "@/lib/crm";
 import { useGarimpos, useInvalidate } from "@/lib/queries";
 
-export const Route = createFileRoute("/_authenticated/garimpos")({
+export const Route = createFileRoute("/_authenticated/garimpos/")({
   head: () => ({
     meta: [
       { title: "Garimpos — WIX MILLION OS" },
@@ -26,7 +26,6 @@ function GarimposPage() {
   const { data, isLoading } = useGarimpos();
   const invalidate = useInvalidate();
   const [form, setForm] = useState<{ open: boolean; g: Garimpo | null }>({ open: false, g: null });
-  const [importOpen, setImportOpen] = useState(false);
   const [del, setDel] = useState<Garimpo | null>(null);
 
   const remove = async () => {
@@ -44,13 +43,14 @@ function GarimposPage() {
         title="Garimpos"
         subtitle="Pesquisas que originam os leads."
         actions={<>
-          <Button variant="outline" onClick={() => setImportOpen(true)}><Upload className="mr-1 h-4 w-4" />Importar garimpo</Button>
+          <Button asChild variant="outline"><Link to="/garimpos/importar"><Upload className="mr-1 h-4 w-4" />Importar garimpo</Link></Button>
           <Button className="bg-gold text-gold-foreground hover:bg-gold/90" onClick={() => setForm({ open: true, g: null })}><Plus className="mr-1 h-4 w-4" />Novo garimpo</Button>
         </>}
       />
       {isLoading ? <Skeleton className="h-48" /> : !data?.length ? (
         <EmptyState title="Nenhum garimpo cadastrado ainda." text="Cadastre o primeiro garimpo para organizar seus leads por pesquisa.">
           <Button onClick={() => setForm({ open: true, g: null })}>Novo garimpo</Button>
+          <Button asChild variant="outline"><Link to="/garimpos/importar"><Upload className="mr-1 h-4 w-4" />Importar garimpo</Link></Button>
         </EmptyState>
       ) : (
         <div className="overflow-x-auto rounded-lg border bg-card">
@@ -62,7 +62,7 @@ function GarimposPage() {
               {data.map((g) => (
                 <tr key={g.id} className="border-b last:border-0 hover:bg-muted/40">
                   <td className="px-4 py-3 font-medium">
-                    <Link to="/leads" search={{ garimpo: g.id }} className="hover:text-gold">{g.name}</Link>
+                    <Link to="/garimpos/$id" params={{ id: g.id }} className="hover:text-gold">{g.name}</Link>
                   </td>
                   <td className="px-4 py-3">{g.niche ?? "—"}</td>
                   <td className="px-4 py-3">{g.city ?? "—"}</td>
@@ -81,7 +81,6 @@ function GarimposPage() {
         </div>
       )}
       <GarimpoForm open={form.open} garimpo={form.g} onOpenChange={(o) => setForm({ open: o, g: o ? form.g : null })} />
-      <ImportSoonDialog open={importOpen} onOpenChange={setImportOpen} />
       <ConfirmDialog open={!!del} onOpenChange={(o) => !o && setDel(null)} destructive title="Excluir garimpo?" text="Os leads vinculados serão mantidos, apenas sem garimpo." confirmLabel="Excluir" onConfirm={remove} />
     </div>
   );
