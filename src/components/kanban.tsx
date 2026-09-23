@@ -55,9 +55,16 @@ export function Kanban({ leads }: { leads: Lead[] }) {
     if (!to || !lead || lead.status === to) return;
     const prev = qc.getQueryData<Lead[]>(["leads"]);
     qc.setQueryData<Lead[]>(["leads"], (old) => old?.map((l) => (l.id === lead.id ? { ...l, status: to } : l)));
-    const patch: Partial<Lead> = { status: to };
-    if (to === "convertido" && !lead.converted_at) patch.converted_at = new Date().toISOString();
-    const { error } = await supabase.from("leads").update(patch).eq("id", lead.id);
+    if (to === "convertido") {
+      // Conversion creates the client + status + activity in one transaction.
+      const { error } = await supabase.rpc("convert_lead_to_client", { _lead_id: lead.id });
+      if (error) { qc.setQueryData(["leads"], prev); return toast.error(friendlyError(error)); }
+      toast.success("Lead convertido em cliente.");
+      qc.invalidateQueries({ queryKey: ["activities"] });
+      qc.invalidateQueries({ queryKey: ["clients"] });
+      return;
+    }
+    const { error } = await supabase.from("leads").update({ status: to }).eq("id", lead.id);
     if (error) {
       qc.setQueryData(["leads"], prev);
       return toast.error(friendlyError(error));
