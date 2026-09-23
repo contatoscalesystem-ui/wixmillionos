@@ -16,7 +16,7 @@ export function validateFile(f: File): string | null {
   if (!(ACCEPTED_EXT as readonly string[]).includes(ext)) return "Formato não suportado. Use TXT, MD, CSV, XLSX ou PDF.";
   if (f.size > MAX_FILE_BYTES) return "Arquivo muito grande. O limite é 10 MB por importação.";
   if (f.size === 0) return "O arquivo está vazio.";
-  if (!MIME_OK[ext].test(f.type)) return "O tipo do arquivo não corresponde à extensão. Verifique o arquivo.";
+  if (!MIME_OK[ext]?.test(f.type)) return "O tipo do arquivo não corresponde à extensão. Verifique o arquivo.";
   return null;
 }
 
@@ -41,8 +41,9 @@ async function readXlsx(f: File): Promise<ReadResult> {
   const tables: RawTable[] = [];
   for (const name of wb.SheetNames) {
     const ws = wb.Sheets[name];
-    if (!ws["!ref"]) continue;
-    const range = XLSX.utils.decode_range(ws["!ref"]);
+    const ref = ws?.["!ref"];
+    if (!ws || !ref) continue;
+    const range = XLSX.utils.decode_range(ref);
     const grid: string[][] = [];
     for (let r = range.s.r; r <= Math.min(range.e.r, range.s.r + 5000); r++) {
       const row: string[] = [];
@@ -60,7 +61,7 @@ async function readXlsx(f: File): Promise<ReadResult> {
     // header = first row with >= 2 filled cells
     const hi = rows.findIndex((r) => r.filter(Boolean).length >= 2);
     if (hi < 0) continue;
-    tables.push({ headers: rows[hi], rows: rows.slice(hi + 1), title: name, sheet: name });
+    tables.push({ headers: rows[hi]!, rows: rows.slice(hi + 1), title: name, sheet: name });
   }
   return { tables, sheets: tables.map((t) => t.sheet!) };
 }
@@ -68,7 +69,7 @@ async function readXlsx(f: File): Promise<ReadResult> {
 async function readPdf(f: File): Promise<ReadResult> {
   const [pdfjs, worker] = await Promise.all([import("pdfjs-dist"), import("pdfjs-dist/build/pdf.worker.min.mjs?url")]);
   pdfjs.GlobalWorkerOptions.workerSrc = worker.default;
-  let doc;
+  let doc: Awaited<ReturnType<typeof pdfjs.getDocument>["promise"]>;
   try {
     doc = await pdfjs.getDocument({ data: new Uint8Array(await f.arrayBuffer()), isEvalSupported: false }).promise;
   } catch {

@@ -79,10 +79,10 @@ export function extractLinks(s: string): Link[] {
   const md = /\[([^\]]*)\]\(\s*<?([^)\s>]+)>?[^)]*\)/g;
   let m: RegExpExecArray | null;
   let rest = s;
-  while ((m = md.exec(s))) out.push({ text: m[1].trim(), url: cleanUrl(m[2]) });
+  while ((m = md.exec(s))) out.push({ text: m[1]!.trim(), url: cleanUrl(m[2]!) });
   rest = s.replace(md, " ");
   const bare = /\b((?:https?:\/\/|www\.)[^\s<>()|\]]+|(?:wa\.me|instagram\.com|instagr\.am|maps\.app\.goo\.gl|goo\.gl\/maps|g\.page)\/[^\s<>()|\]]*)/gi;
-  while ((m = bare.exec(rest))) out.push({ text: "", url: cleanUrl(m[1]) });
+  while ((m = bare.exec(rest))) out.push({ text: "", url: cleanUrl(m[1]!) });
   return out;
 }
 function cleanUrl(u: string) {
@@ -222,16 +222,16 @@ export function extractTextTables(text: string): RawTable[] {
   let lastTitle = "";
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
-    const t = line.trim();
+    const t = (line ?? "").trim();
     if (t && !t.includes("|") && !t.includes("\t")) {
       lastTitle = t.replace(/^#+\s*/, "").replace(/\*\*/g, "").slice(0, 160);
     }
-    if (t.includes("|") && i + 1 < lines.length && isSeparator(lines[i + 1])) {
+    if (t.includes("|") && i + 1 < lines.length && isSeparator(lines[i + 1]!)) {
       const headers = splitRow(t).map(stripMd);
       const rows: string[][] = [];
       let j = i + 2;
-      while (j < lines.length && lines[j].includes("|") && lines[j].trim()) {
-        if (!isSeparator(lines[j])) rows.push(splitRow(lines[j]));
+      while (j < lines.length && lines[j]!.includes("|") && lines[j]!.trim()) {
+        if (!isSeparator(lines[j]!)) rows.push(splitRow(lines[j]!));
         j++;
       }
       tables.push({ headers, rows: rows.map((r) => fit(r, headers.length)), title: lastTitle });
@@ -242,9 +242,9 @@ export function extractTextTables(text: string): RawTable[] {
     if (t.includes("\t") && t.split("\t").length >= 3) {
       const block: string[][] = [];
       let j = i;
-      while (j < lines.length && lines[j].includes("\t")) { block.push(lines[j].split("\t").map((c) => c.trim())); j++; }
+      while (j < lines.length && lines[j]!.includes("\t")) { block.push(lines[j]!.split("\t").map((c) => c.trim())); j++; }
       if (block.length >= 2) {
-        const headers = block[0].map(stripMd);
+        const headers = block[0]!.map(stripMd);
         tables.push({ headers, rows: block.slice(1).map((r) => fit(r, headers.length)), title: lastTitle });
         i = j - 1;
       }
@@ -260,7 +260,7 @@ export function parseCsv(text: string): RawTable {
   const firstLine = src.split(/\r?\n/, 1)[0] ?? "";
   const count = (ch: string) => { let n = 0, q = false; for (const c of firstLine) { if (c === '"') q = !q; else if (c === ch && !q) n++; } return n; };
   const cands = [";", ",", "\t"].map((d) => [d, count(d)] as const).sort((a, b) => b[1] - a[1]);
-  const d = cands[0][1] > 0 ? cands[0][0] : ",";
+  const d = cands[0]![1] > 0 ? cands[0]![0] : ",";
   const rows: string[][] = [];
   let row: string[] = []; let cur = ""; let q = false;
   for (let i = 0; i < src.length; i++) {
@@ -289,7 +289,7 @@ export function extractPhones(s: string): string[] {
   const text = stripMd(s);
   const found: string[] = [];
   const wa = /wa\.me\/(\d{10,13})/gi; let m: RegExpExecArray | null;
-  while ((m = wa.exec(s))) found.push(m[1]);
+  while ((m = wa.exec(s))) found.push(m[1]!);
   for (const x of text.match(PHONE_RE) ?? []) {
     const d = phoneDigits(x);
     if (d.length >= 10 && d.length <= 13) found.push(x.trim());
@@ -310,9 +310,9 @@ export function parseFollowers(s: string): number | null {
   if (!t || isEmptyValue(t)) return null;
   const m = t.match(/(\d+(?:[.,]\d+)*)\s*(k|mil|mi|m)?\b/);
   if (!m) return null;
-  const num = m[1]; const suf = m[2];
+  const num = m[1]!; const suf = m[2];
   if (suf) {
-    const v = parseFloat(num.replace(/\./g, (_, i) => (num.indexOf(",") >= 0 ? "" : ".")).replace(",", "."));
+    const v = parseFloat(num.includes(",") ? num.replace(/\./g, "").replace(",", ".") : num);
     if (!isFinite(v)) return null;
     return Math.round(v * (suf === "k" || suf === "mil" ? 1000 : 1_000_000));
   }
@@ -326,7 +326,7 @@ export function parseRatings(s: string): number[] {
   const text = s.replace(/\]\([^)]*\)/g, "]");
   const re = /(\d)[.,](\d)\s*(?:\/\s*5|★|⭐|estrelas?)?/g; let m: RegExpExecArray | null;
   while ((m = re.exec(text))) { const v = parseFloat(`${m[1]}.${m[2]}`); if (v >= 0 && v <= 5) out.push(v); }
-  if (!out.length) { const w = text.match(/\b([0-5])\s*(?:\/\s*5|★|⭐|estrelas?)/); if (w) out.push(parseFloat(w[1])); }
+  if (!out.length) { const w = text.match(/\b([0-5])\s*(?:\/\s*5|★|⭐|estrelas?)/); if (w) out.push(parseFloat(w[1]!)); }
   return [...new Set(out)];
 }
 
@@ -339,12 +339,12 @@ export function parseReviews(s: string): { value: number | null; all: number[]; 
   for (const seg of segs) {
     const cleaned = seg.replace(/\d[.,]\d\s*(\/\s*5|★|⭐|estrelas?)/g, " ");
     const m = cleaned.match(/(\d{1,3}(?:\.\d{3})+|\d+)/);
-    if (m) vals.push({ n: parseInt(m[1].replace(/\./g, ""), 10), google: /google|maps/i.test(seg) });
+    if (m) vals.push({ n: parseInt(m[1]!.replace(/\./g, ""), 10), google: /google|maps/i.test(seg) });
   }
   if (!vals.length) return { value: null, all: [], conflict: false };
   const g = vals.find((v) => v.google);
   const all = [...new Set(vals.map((v) => v.n))];
-  return { value: (g ?? vals[0]).n, all, conflict: all.length > 1 };
+  return { value: (g ?? vals[0]!).n, all, conflict: all.length > 1 };
 }
 
 export function parseScore(s: string): number | null {
@@ -384,13 +384,13 @@ export function parsePhotoQuality(s: string): string | null {
 }
 export function normalizeInstagram(s: string): { url: string | null; invalid: boolean } {
   const links = extractLinks(s).filter((l) => /instagram\.com|instagr\.am/i.test(l.url));
-  if (links.length) return { url: links[0].url.replace(/^http:/, "https:"), invalid: false };
+  if (links.length) return { url: links[0]!.url.replace(/^http:/, "https:"), invalid: false };
   const t = stripMd(s);
   if (!t || isEmptyValue(t)) return { url: null, invalid: false };
   const h = t.match(/@([A-Za-z0-9._]{2,30})/);
   if (h) return { url: `https://instagram.com/${h[1]}`, invalid: false };
   const bare = t.match(/^([A-Za-z0-9._]{3,30})$/);
-  if (bare && /[._]|\d/.test(bare[1])) return { url: `https://instagram.com/${bare[1]}`, invalid: false };
+  if (bare && /[._]|\d/.test(bare[1]!)) return { url: `https://instagram.com/${bare[1]!}`, invalid: false };
   return { url: null, invalid: true };
 }
 
@@ -438,19 +438,19 @@ export function parseTableRows(table: RawTable, defaults: GarimpoDefaults): Pars
     const phoneCell = cell("phone"); const waCell = cell("whatsapp");
     const phones = extractPhones(phoneCell);
     const waPhones = extractPhones(waCell);
-    if (phones.length) p.phone = phones[0];
+    if (phones.length) p.phone = phones[0]!;
     if (phones.length > 1) { p.extra_phones = phones.slice(1); w.push("Múltiplos telefones"); }
     const waHintPhone = WA_HINT.test(phoneCell);
     const waHintCol = WA_HINT.test(waCell);
     if (waPhones.length) {
-      p.whatsapp = waPhones[0];
+      p.whatsapp = waPhones[0]!;
       p.whatsapp_confirmed = waHintCol || /confirmad/i.test(waCell);
       if (p.phone && normPhone(p.phone) !== normPhone(p.whatsapp)) w.push("Telefone conflitante");
       if (!p.phone) p.phone = null;
     } else if (waHintPhone && phones.length) {
       // e.g. "(75) 99999-9999 (WhatsApp)" or wa.me link
       const waLink = phoneCell.match(/wa\.me\/(\d{10,13})/i);
-      p.whatsapp = waLink ? waLink[1] : phones[0];
+      p.whatsapp = waLink ? waLink[1]! : phones[0]!;
       p.whatsapp_confirmed = true;
     }
 
@@ -476,7 +476,7 @@ export function parseTableRows(table: RawTable, defaults: GarimpoDefaults): Pars
     if (rv.conflict) w.push("Quantidade de avaliações conflitante");
     if (p.google_reviews == null) {
       const inG = stripMd(gCell).match(/(\d+)\s*(avalia|reviews)/i);
-      if (inG) p.google_reviews = parseInt(inG[1], 10);
+      if (inG) p.google_reviews = parseInt(inG[1]!, 10);
     }
 
     // website + status
