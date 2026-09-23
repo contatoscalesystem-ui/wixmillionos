@@ -38,20 +38,22 @@ function Card({ lead }: { lead: Lead }) {
 // "sem_resposta" is shown in the Recuperação column without changing the stored status.
 const columnOf = (s: LeadStatus): LeadStatus => (s === "sem_resposta" ? "recuperacao" : s);
 
-function Column({ status, leads }: { status: LeadStatus; leads: Lead[] }) {
+function Column({ status, leads, wide, emptyText }: { status: LeadStatus; leads: Lead[]; wide?: boolean; emptyText?: string }) {
   const { setNodeRef, isOver } = useDroppable({ id: status });
   return (
-    <div ref={setNodeRef} className={cn("flex w-64 shrink-0 flex-col rounded-lg border bg-muted/50", isOver && "border-gold")}>
+    <div ref={setNodeRef} className={cn(cn("flex shrink-0 flex-col", wide ? "w-full max-w-[400px]" : "w-64")," rounded-lg border bg-muted/50", isOver && "border-gold")}>
       <div className="flex items-center justify-between px-3 py-2.5 text-xs font-semibold uppercase tracking-wide">
         <span>{statusLabel(status)}</span>
         <span className="tabular-nums text-muted-foreground">{leads.length}</span>
       </div>
-      <div className="flex min-h-24 flex-1 flex-col gap-2 p-2">{leads.map((l) => <Card key={l.id} lead={l} />)}</div>
+      <div className="flex min-h-24 flex-1 flex-col gap-2 p-2">{leads.map((l) => <Card key={l.id} lead={l} />)}{!leads.length && emptyText && <p className="px-1 py-6 text-center text-xs text-muted-foreground">{emptyText}</p>}</div>
     </div>
   );
 }
 
-export function Kanban({ leads }: { leads: Lead[] }) {
+export function Kanban({ leads, statusFilter }: { leads: Lead[]; statusFilter?: LeadStatus | null }) {
+  // A specific status filter shows only its column (sem_resposta lives in Recuperação).
+  const cols = statusFilter ? [columnOf(statusFilter)] : KANBAN_STATUSES;
   const qc = useQueryClient();
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
 
@@ -82,8 +84,8 @@ export function Kanban({ leads }: { leads: Lead[] }) {
 
   return (
     <DndContext sensors={sensors} onDragEnd={onDragEnd}>
-      <div className="flex gap-3 overflow-x-auto pb-4">
-        {KANBAN_STATUSES.map((s) => <Column key={s} status={s} leads={leads.filter((l) => columnOf(l.status) === s)} />)}
+      <div className={cn("flex gap-3 pb-4", !statusFilter && "overflow-x-auto")}>
+        {cols.map((s) => <Column key={s} status={s} wide={!!statusFilter} emptyText={statusFilter ? "Nenhum lead encontrado." : undefined} leads={leads.filter((l) => columnOf(l.status) === s)} />)}
       </div>
     </DndContext>
   );
