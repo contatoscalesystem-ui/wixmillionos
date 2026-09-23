@@ -282,6 +282,69 @@ export type Database = {
           },
         ]
       }
+      import_batch_rows: {
+        Row: {
+          created_at: string
+          duplicate_action: string | null
+          duplicate_matches: Json
+          id: string
+          import_batch_id: string
+          parsed_data: Json
+          raw_data: Json
+          row_number: number
+          selected_for_import: boolean
+          status: string
+          updated_at: string
+          warnings: Json
+          workspace_id: string
+        }
+        Insert: {
+          created_at?: string
+          duplicate_action?: string | null
+          duplicate_matches?: Json
+          id?: string
+          import_batch_id: string
+          parsed_data?: Json
+          raw_data?: Json
+          row_number: number
+          selected_for_import?: boolean
+          status?: string
+          updated_at?: string
+          warnings?: Json
+          workspace_id?: string
+        }
+        Update: {
+          created_at?: string
+          duplicate_action?: string | null
+          duplicate_matches?: Json
+          id?: string
+          import_batch_id?: string
+          parsed_data?: Json
+          raw_data?: Json
+          row_number?: number
+          selected_for_import?: boolean
+          status?: string
+          updated_at?: string
+          warnings?: Json
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "import_batch_rows_import_batch_id_fkey"
+            columns: ["import_batch_id"]
+            isOneToOne: false
+            referencedRelation: "import_batches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "import_batch_rows_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       import_batches: {
         Row: {
           completed_at: string | null
@@ -1022,6 +1085,14 @@ export type Database = {
     }
     Functions: {
       accept_pending_invite: { Args: never; Returns: boolean }
+      commit_import_batch: {
+        Args: {
+          _assigned_to?: string
+          _batch_id: string
+          _initial_status?: Database["public"]["Enums"]["lead_status"]
+        }
+        Returns: Json
+      }
       convert_lead_to_client: { Args: { _lead_id: string }; Returns: string }
       current_workspace_id: { Args: never; Returns: string }
       find_lead_duplicates: {
