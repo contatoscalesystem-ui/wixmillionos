@@ -1,7 +1,7 @@
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Archive, ArchiveRestore, Eye, Pencil, Plus, Trash2, Upload, MessageCircle } from "lucide-react";
+import { Archive, ArchiveRestore, Eye, Pencil, Plus, Trash2, Upload, MessageCircle, Search, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,9 +37,16 @@ export function LeadsView({ forceKanban }: { forceKanban?: boolean }) {
   const { data: profiles } = useProfiles();
   const invalidate = useInvalidate();
 
+  const emptyFl = { status: ALL, priority: ALL, city: ALL, niche: ALL, garimpo: ALL, assigned: ALL, site: ALL };
   const [q, setQ] = useState("");
-  const [fl, setFl] = useState({ status: ALL, priority: ALL, city: ALL, niche: ALL, garimpo: search.garimpo ?? ALL, assigned: ALL, site: ALL });
+  const [fl, setFl] = useState({ ...emptyFl, garimpo: search.garimpo ?? ALL });
   const [minScore, setMinScore] = useState("");
+  const [applied, setApplied] = useState({ q: "", fl: { ...emptyFl, garimpo: search.garimpo ?? ALL }, minScore: "" });
+  const runSearch = () => setApplied({ q, fl, minScore });
+  const clearFilters = () => {
+    setQ(""); setFl(emptyFl); setMinScore("");
+    setApplied({ q: "", fl: emptyFl, minScore: "" });
+  };
   const [sort, setSort] = useState("score");
   const [form, setForm] = useState<{ open: boolean; lead: Lead | null }>({ open: false, lead: null });
   const [gOpen, setGOpen] = useState(false);
@@ -50,17 +57,20 @@ export function LeadsView({ forceKanban }: { forceKanban?: boolean }) {
   const uniq = (k: "city" | "niche") => [...new Set((leads ?? []).map((l) => l[k]).filter(Boolean) as string[])].sort();
 
   const rows = useMemo(() => {
-    const term = q.trim().toLowerCase();
+    const { fl: af, minScore: ms } = applied;
+    const term = applied.q.trim().toLowerCase();
+    const digits = term.replace(/\D/g, "");
     const r = (leads ?? []).filter((l) =>
-      (!term || [l.company_name, l.niche, l.city, l.neighborhood, l.phone, l.whatsapp, l.instagram_url].some((v) => v?.toLowerCase().includes(term))) &&
-      (fl.status === ALL || l.status === fl.status) &&
-      (fl.priority === ALL || l.priority === fl.priority) &&
-      (fl.city === ALL || l.city === fl.city) &&
-      (fl.niche === ALL || l.niche === fl.niche) &&
-      (fl.garimpo === ALL || l.garimpo_id === fl.garimpo) &&
-      (fl.assigned === ALL || l.assigned_to === fl.assigned) &&
-      (fl.site === ALL || l.website_status === fl.site) &&
-      (!minScore || (l.score ?? -Infinity) >= Number(minScore)),
+      (!term || [l.company_name, l.niche, l.city, l.neighborhood, l.phone, l.whatsapp, l.instagram_url].some((v) => v?.toLowerCase().includes(term)) ||
+        (digits.length >= 4 && [l.phone, l.whatsapp].some((v) => v?.replace(/\D/g, "").includes(digits)))) &&
+      (af.status === ALL || l.status === af.status) &&
+      (af.priority === ALL || l.priority === af.priority) &&
+      (af.city === ALL || l.city === af.city) &&
+      (af.niche === ALL || l.niche === af.niche) &&
+      (af.garimpo === ALL || l.garimpo_id === af.garimpo) &&
+      (af.assigned === ALL || l.assigned_to === af.assigned) &&
+      (af.site === ALL || l.website_status === af.site) &&
+      (!ms || (l.score ?? -Infinity) >= Number(ms)),
     );
     const t = (v: string | null) => (v ? new Date(v).getTime() : null);
     const nullLast = (a: number | null, b: number | null, dir = 1) => (a == null ? 1 : b == null ? -1 : (a - b) * dir);
@@ -75,7 +85,7 @@ export function LeadsView({ forceKanban }: { forceKanban?: boolean }) {
         default: return 0;
       }
     });
-  }, [leads, q, fl, minScore, sort]);
+  }, [leads, applied, sort]);
 
   const archive = async () => {
     if (!del) return;
@@ -143,15 +153,17 @@ export function LeadsView({ forceKanban }: { forceKanban?: boolean }) {
       ) : (
         <>
           <div className="mb-4 flex flex-wrap gap-2">
-            <Input placeholder="Buscar empresa, cidade, telefone..." value={q} onChange={(e) => setQ(e.target.value)} className="h-9 w-full sm:w-64" />
+            <Input placeholder="Buscar empresa, cidade, telefone..." value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); runSearch(); } }} className="h-9 w-full sm:w-64" />
             <F k="status" label="Status" items={LEAD_STATUS} />
             <F k="priority" label="Prioridade" items={PRIORITIES.map((p) => ({ value: p, label: p }))} />
-            <Input placeholder="Score mín." inputMode="decimal" value={minScore} onChange={(e) => setMinScore(e.target.value.replace(/[^\d.]/g, ""))} className="h-9 w-[calc(50%-0.25rem)] sm:w-28" />
+            <Input placeholder="Score mín." inputMode="decimal" value={minScore} onChange={(e) => setMinScore(e.target.value.replace(/[^\d.]/g, ""))} onKeyDown={(e) => { if (e.key === "Enter") runSearch(); }} className="h-9 w-[calc(50%-0.25rem)] sm:w-28" />
             <F k="city" label="Cidade" items={uniq("city").map((c) => ({ value: c, label: c }))} />
             <F k="niche" label="Nicho" items={uniq("niche").map((c) => ({ value: c, label: c }))} />
             <F k="garimpo" label="Garimpo" items={(garimpos ?? []).map((g) => ({ value: g.id, label: g.name }))} />
             <F k="assigned" label="Responsável" items={(profiles ?? []).map((p) => ({ value: p.id, label: p.full_name || p.email || "—" }))} />
             <F k="site" label="Site" items={WEBSITE_STATUS} />
+            <Button className="h-9 bg-gold text-gold-foreground hover:bg-gold/90" onClick={runSearch}><Search className="mr-1 h-4 w-4" />Buscar</Button>
+            <Button variant="outline" className="h-9 bg-card text-foreground" onClick={clearFilters}><X className="mr-1 h-4 w-4" />Limpar filtros</Button>
             {view === "tabela" && (
               <Select value={sort} onValueChange={setSort}>
                 <SelectTrigger className="h-9 w-[calc(50%-0.25rem)] sm:w-48"><SelectValue /></SelectTrigger>
