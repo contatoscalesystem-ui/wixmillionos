@@ -18,11 +18,11 @@ import { Route as AuthenticatedClientesRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedConfiguracoesRouteImport } from './routes/_authenticated/configuracoes'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedFinanceiroRouteImport } from './routes/_authenticated/financeiro'
-import { Route as AuthenticatedGarimposRouteImport } from './routes/_authenticated/garimpos'
 import { Route as AuthenticatedPipelineRouteImport } from './routes/_authenticated/pipeline'
 import { Route as AuthenticatedProducaoRouteImport } from './routes/_authenticated/producao'
 import { Route as AuthenticatedRecuperacaoRouteImport } from './routes/_authenticated/recuperacao'
 import { Route as AuthenticatedConfiguracoesEquipeRouteImport } from './routes/_authenticated/configuracoes_.equipe'
+import { Route as AuthenticatedGarimposIndexRouteImport } from './routes/_authenticated/garimpos.index'
 import { Route as AuthenticatedLeadsIndexRouteImport } from './routes/_authenticated/leads.index'
 import { Route as AuthenticatedLeadsIdRouteImport } from './routes/_authenticated/leads.$id'
 
@@ -71,11 +71,6 @@ const AuthenticatedFinanceiroRoute = AuthenticatedFinanceiroRouteImport.update({
   path: '/financeiro',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
-const AuthenticatedGarimposRoute = AuthenticatedGarimposRouteImport.update({
-  id: '/garimpos',
-  path: '/garimpos',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
 const AuthenticatedPipelineRoute = AuthenticatedPipelineRouteImport.update({
   id: '/pipeline',
   path: '/pipeline',
@@ -98,6 +93,12 @@ const AuthenticatedConfiguracoesEquipeRoute =
     path: '/configuracoes/equipe',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedGarimposIndexRoute =
+  AuthenticatedGarimposIndexRouteImport.update({
+    id: '/garimpos/',
+    path: '/garimpos/',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedLeadsIndexRoute = AuthenticatedLeadsIndexRouteImport.update({
   id: '/leads/',
   path: '/leads/',
@@ -118,12 +119,12 @@ export interface FileRoutesByFullPath {
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/financeiro': typeof AuthenticatedFinanceiroRoute
-  '/garimpos': typeof AuthenticatedGarimposRoute
   '/pipeline': typeof AuthenticatedPipelineRoute
   '/producao': typeof AuthenticatedProducaoRoute
   '/recuperacao': typeof AuthenticatedRecuperacaoRoute
   '/configuracoes/equipe': typeof AuthenticatedConfiguracoesEquipeRoute
   '/leads/$id': typeof AuthenticatedLeadsIdRoute
+  '/garimpos/': typeof AuthenticatedGarimposIndexRoute
   '/leads/': typeof AuthenticatedLeadsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -135,12 +136,12 @@ export interface FileRoutesByTo {
   '/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/financeiro': typeof AuthenticatedFinanceiroRoute
-  '/garimpos': typeof AuthenticatedGarimposRoute
   '/pipeline': typeof AuthenticatedPipelineRoute
   '/producao': typeof AuthenticatedProducaoRoute
   '/recuperacao': typeof AuthenticatedRecuperacaoRoute
   '/configuracoes/equipe': typeof AuthenticatedConfiguracoesEquipeRoute
   '/leads/$id': typeof AuthenticatedLeadsIdRoute
+  '/garimpos': typeof AuthenticatedGarimposIndexRoute
   '/leads': typeof AuthenticatedLeadsIndexRoute
 }
 export interface FileRoutesById {
@@ -154,12 +155,12 @@ export interface FileRoutesById {
   '/_authenticated/configuracoes': typeof AuthenticatedConfiguracoesRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/financeiro': typeof AuthenticatedFinanceiroRoute
-  '/_authenticated/garimpos': typeof AuthenticatedGarimposRoute
   '/_authenticated/pipeline': typeof AuthenticatedPipelineRoute
   '/_authenticated/producao': typeof AuthenticatedProducaoRoute
   '/_authenticated/recuperacao': typeof AuthenticatedRecuperacaoRoute
   '/_authenticated/configuracoes_/equipe': typeof AuthenticatedConfiguracoesEquipeRoute
   '/_authenticated/leads/$id': typeof AuthenticatedLeadsIdRoute
+  '/_authenticated/garimpos/': typeof AuthenticatedGarimposIndexRoute
   '/_authenticated/leads/': typeof AuthenticatedLeadsIndexRoute
 }
 export interface FileRouteTypes {
@@ -173,12 +174,12 @@ export interface FileRouteTypes {
     | '/configuracoes'
     | '/dashboard'
     | '/financeiro'
-    | '/garimpos'
     | '/pipeline'
     | '/producao'
     | '/recuperacao'
     | '/configuracoes/equipe'
     | '/leads/$id'
+    | '/garimpos/'
     | '/leads/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -190,12 +191,12 @@ export interface FileRouteTypes {
     | '/configuracoes'
     | '/dashboard'
     | '/financeiro'
-    | '/garimpos'
     | '/pipeline'
     | '/producao'
     | '/recuperacao'
     | '/configuracoes/equipe'
     | '/leads/$id'
+    | '/garimpos'
     | '/leads'
   id:
     | '__root__'
@@ -208,12 +209,12 @@ export interface FileRouteTypes {
     | '/_authenticated/configuracoes'
     | '/_authenticated/dashboard'
     | '/_authenticated/financeiro'
-    | '/_authenticated/garimpos'
     | '/_authenticated/pipeline'
     | '/_authenticated/producao'
     | '/_authenticated/recuperacao'
     | '/_authenticated/configuracoes_/equipe'
     | '/_authenticated/leads/$id'
+    | '/_authenticated/garimpos/'
     | '/_authenticated/leads/'
   fileRoutesById: FileRoutesById
 }
@@ -288,13 +289,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedFinanceiroRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/garimpos': {
-      id: '/_authenticated/garimpos'
-      path: '/garimpos'
-      fullPath: '/garimpos'
-      preLoaderRoute: typeof AuthenticatedGarimposRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/pipeline': {
       id: '/_authenticated/pipeline'
       path: '/pipeline'
@@ -323,6 +317,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedConfiguracoesEquipeRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/garimpos/': {
+      id: '/_authenticated/garimpos/'
+      path: '/garimpos'
+      fullPath: '/garimpos/'
+      preLoaderRoute: typeof AuthenticatedGarimposIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/leads/': {
       id: '/_authenticated/leads/'
       path: '/leads'
@@ -347,12 +348,12 @@ interface AuthenticatedRouteChildren {
   AuthenticatedConfiguracoesRoute: typeof AuthenticatedConfiguracoesRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedFinanceiroRoute: typeof AuthenticatedFinanceiroRoute
-  AuthenticatedGarimposRoute: typeof AuthenticatedGarimposRoute
   AuthenticatedPipelineRoute: typeof AuthenticatedPipelineRoute
   AuthenticatedProducaoRoute: typeof AuthenticatedProducaoRoute
   AuthenticatedRecuperacaoRoute: typeof AuthenticatedRecuperacaoRoute
   AuthenticatedConfiguracoesEquipeRoute: typeof AuthenticatedConfiguracoesEquipeRoute
   AuthenticatedLeadsIdRoute: typeof AuthenticatedLeadsIdRoute
+  AuthenticatedGarimposIndexRoute: typeof AuthenticatedGarimposIndexRoute
   AuthenticatedLeadsIndexRoute: typeof AuthenticatedLeadsIndexRoute
 }
 
@@ -363,12 +364,12 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedConfiguracoesRoute: AuthenticatedConfiguracoesRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedFinanceiroRoute: AuthenticatedFinanceiroRoute,
-  AuthenticatedGarimposRoute: AuthenticatedGarimposRoute,
   AuthenticatedPipelineRoute: AuthenticatedPipelineRoute,
   AuthenticatedProducaoRoute: AuthenticatedProducaoRoute,
   AuthenticatedRecuperacaoRoute: AuthenticatedRecuperacaoRoute,
   AuthenticatedConfiguracoesEquipeRoute: AuthenticatedConfiguracoesEquipeRoute,
   AuthenticatedLeadsIdRoute: AuthenticatedLeadsIdRoute,
+  AuthenticatedGarimposIndexRoute: AuthenticatedGarimposIndexRoute,
   AuthenticatedLeadsIndexRoute: AuthenticatedLeadsIndexRoute,
 }
 

@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ConfirmDialog, StrongConfirmDialog, EmptyState, PageHeader, PriorityBadge, Score, StatusBadge } from "@/components/crm";
 import { LeadForm } from "@/components/lead-form";
-import { GarimpoForm, ImportSoonDialog } from "@/components/garimpo-form";
+import { GarimpoForm } from "@/components/garimpo-form";
 import { Kanban } from "@/components/kanban";
 import { LEAD_STATUS, PRIORITIES, WEBSITE_STATUS, fmtDate, friendlyError, normalizeBrPhone, websiteLabel, type Lead } from "@/lib/crm";
 import { profileName, useArchivedLeads, useGarimpos, useInvalidate, useLeads, useProfiles } from "@/lib/queries";
@@ -22,7 +22,7 @@ const ALL = "__all";
 const PRIO_RANK: Record<string, number> = { A: 0, B: 1, C: 2, D: 3 };
 
 export function LeadsView({ forceKanban }: { forceKanban?: boolean }) {
-  const raw = useSearch({ strict: false }) as { garimpo?: string; view?: string };
+  const raw = useSearch({ strict: false }) as { garimpo?: string; view?: string; import_batch?: string };
   const search = forceKanban ? {} : raw;
   const navigate = useNavigate();
   const view = forceKanban ? "kanban" : search.view ?? "tabela";
@@ -52,7 +52,6 @@ export function LeadsView({ forceKanban }: { forceKanban?: boolean }) {
   const [sort, setSort] = useState("score");
   const [form, setForm] = useState<{ open: boolean; lead: Lead | null }>({ open: false, lead: null });
   const [gOpen, setGOpen] = useState(false);
-  const [importOpen, setImportOpen] = useState(false);
   const [del, setDel] = useState<Lead | null>(null);
   const [hardDel, setHardDel] = useState<Lead | null>(null);
 
@@ -64,6 +63,7 @@ export function LeadsView({ forceKanban }: { forceKanban?: boolean }) {
     const term = norm(applied.q.trim());
     const digits = term.replace(/\D/g, "");
     const r = (leads ?? []).filter((l) =>
+      (!search.import_batch || l.import_batch_id === search.import_batch) &&
       (!term || [l.company_name, l.niche, l.city, l.neighborhood, l.phone, l.whatsapp, l.instagram_url].some((v) => norm(v).includes(term)) ||
         (digits.length >= 4 && [l.phone, l.whatsapp].some((v) => v?.replace(/\D/g, "").includes(digits)))) &&
       (af.status === ALL || l.status === af.status) &&
@@ -88,7 +88,7 @@ export function LeadsView({ forceKanban }: { forceKanban?: boolean }) {
         default: return 0;
       }
     });
-  }, [leads, applied, sort]);
+  }, [leads, applied, sort, search.import_batch]);
 
   const archive = async () => {
     if (!del) return;
@@ -121,7 +121,7 @@ export function LeadsView({ forceKanban }: { forceKanban?: boolean }) {
     </Select>
   );
 
-  const setView = (v: "tabela" | "kanban") => navigate({ to: "/leads", search: { garimpo: search.garimpo, view: v === "kanban" ? "kanban" as const : undefined } });
+  const setView = (v: "tabela" | "kanban") => navigate({ to: "/leads", search: { garimpo: search.garimpo, import_batch: search.import_batch, view: v === "kanban" ? "kanban" as const : undefined } });
 
   return (
     <div>
@@ -136,9 +136,17 @@ export function LeadsView({ forceKanban }: { forceKanban?: boolean }) {
               ))}
             </div>
           )}
+          <Button asChild variant="outline"><Link to="/garimpos/importar"><Upload className="mr-1 h-4 w-4" />Importar garimpo</Link></Button>
           <Button className="bg-gold text-gold-foreground hover:bg-gold/90" onClick={() => setForm({ open: true, lead: null })}><Plus className="mr-1 h-4 w-4" />Cadastrar lead</Button>
         </>}
       />
+      {search.import_batch && (
+        <div className="mb-3 flex flex-wrap items-center gap-2 rounded-md border border-gold/50 bg-gold-soft px-3 py-2 text-sm">
+          Mostrando somente os leads de um lote de importação.
+          <Link to="/garimpos/lotes/$id" params={{ id: search.import_batch }} className="underline">Ver lote</Link>
+          <Link to="/leads" className="underline">Ver todos os leads</Link>
+        </div>
+      )}
 
       {!forceKanban && (
         <div className="mb-3 flex gap-1 text-sm">
@@ -153,7 +161,7 @@ export function LeadsView({ forceKanban }: { forceKanban?: boolean }) {
         <EmptyState title="Nenhum lead cadastrado ainda." text="Comece registrando um garimpo ou cadastrando seu primeiro lead.">
           <Button variant="outline" onClick={() => setGOpen(true)}>Novo garimpo</Button>
           <Button onClick={() => setForm({ open: true, lead: null })}>Cadastrar lead</Button>
-          <Button variant="outline" onClick={() => setImportOpen(true)}><Upload className="mr-1 h-4 w-4" />Importar garimpo — próximo MVP</Button>
+          <Button asChild variant="outline"><Link to="/garimpos/importar"><Upload className="mr-1 h-4 w-4" />Importar garimpo</Link></Button>
         </EmptyState>
       ) : (
         <>
@@ -234,7 +242,6 @@ export function LeadsView({ forceKanban }: { forceKanban?: boolean }) {
 
       <LeadForm open={form.open} lead={form.lead} defaultGarimpo={fl.garimpo !== ALL ? fl.garimpo : undefined} onOpenChange={(o) => setForm({ open: o, lead: o ? form.lead : null })} />
       <GarimpoForm open={gOpen} onOpenChange={setGOpen} />
-      <ImportSoonDialog open={importOpen} onOpenChange={setImportOpen} />
       <ConfirmDialog open={!!del} onOpenChange={(o) => !o && setDel(null)} title={del?.archived_at ? "Restaurar lead?" : "Arquivar lead?"} text={del?.archived_at ? `"${del?.company_name}" volta para a lista de leads ativos.` : `"${del?.company_name}" sai das listas, mas timeline, notas e origem são mantidas. Pode ser encontrado em Arquivados.`} confirmLabel={del?.archived_at ? "Restaurar" : "Arquivar"} onConfirm={archive} />
       <StrongConfirmDialog open={!!hardDel} onOpenChange={(o) => !o && setHardDel(null)} text="O lead, suas notas, etiquetas e timeline serão apagados para sempre. Cliente, projeto e financeiro vinculados não são apagados — se existirem, a exclusão é bloqueada." onConfirm={hardRemove} />
     </div>

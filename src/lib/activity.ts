@@ -21,4 +21,5 @@ export const ACTIVITY_LABEL: Record<string, string> = {
   tag_added: "Etiqueta adicionada",
   archived: "Lead arquivado",
   restored: "Lead restaurado",
+  import_completed: "Importação concluída",
 };

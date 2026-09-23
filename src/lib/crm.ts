@@ -111,6 +111,10 @@ export const friendlyError = (e: unknown) => {
   if (msg.includes("LAST_ADMIN")) return "O espaço de trabalho precisa ter pelo menos um admin.";
   if (msg.includes("SIGNUP_INVITE_ONLY")) return "Novos acessos são liberados somente por convite.";
   if (msg.includes("LEAD_NOT_FOUND")) return "Lead não encontrado.";
+  if (msg.includes("BATCH_NOT_FOUND")) return "Lote de importação não encontrado.";
+  if (msg.includes("BATCH_NOT_READY")) return "Este lote já foi importado ou cancelado.";
+  if (msg.includes("ASSIGNEE_NOT_MEMBER")) return "O responsável escolhido não faz parte da equipe.";
+  if (msg.includes("INVALID_INITIAL_STATUS")) return "Status inicial inválido para importação.";
   if (/duplicate key|unique/i.test(msg)) return "Já existe um registro com esses dados.";
   if (/foreign key/i.test(msg)) return "Não é possível excluir: existem registros vinculados. Exclua-os primeiro e tente novamente.";
   if (/row-level security|permission denied/i.test(msg)) return "Você não tem permissão para esta ação.";

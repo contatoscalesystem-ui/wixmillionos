@@ -67,16 +67,3 @@ export function GarimpoForm({ open, onOpenChange, garimpo }: { open: boolean; on
     </Dialog>
   );
 }
-
-export function ImportSoonDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader><DialogTitle>Importar garimpo</DialogTitle></DialogHeader>
-        <p className="text-sm text-muted-foreground">Importação inteligente será habilitada no próximo MVP.</p>
-        <p className="text-sm text-muted-foreground">Por enquanto, cadastre o garimpo manualmente e adicione os leads a ele.</p>
-        <DialogFooter><Button onClick={() => onOpenChange(false)}>Entendi</Button></DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
