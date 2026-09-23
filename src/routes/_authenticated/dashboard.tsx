@@ -84,9 +84,11 @@ function Dashboard() {
           <h2 className="mb-4 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Funil</h2>
           <div className="space-y-2.5">
             {FUNNEL.map((name, i) => {
-              const v = reached[i];
-              const pctTotal = reached[0] ? (v / reached[0]) * 100 : 0;
-              const pctPrev = i === 0 ? null : reached[i - 1] ? (v / reached[i - 1]) * 100 : 0;
+              const v = reached[i] ?? 0;
+              const total = reached[0] ?? 0;
+              const prev = reached[i - 1] ?? 0;
+              const pctTotal = total ? (v / total) * 100 : 0;
+              const pctPrev = i === 0 ? null : prev ? (v / prev) * 100 : 0;
               return (
                 <div key={name}>
                   <div className="mb-1 flex justify-between text-sm">
