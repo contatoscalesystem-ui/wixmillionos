@@ -42,10 +42,11 @@ export function LeadsView({ forceKanban }: { forceKanban?: boolean }) {
   const [fl, setFl] = useState({ ...emptyFl, garimpo: search.garimpo ?? ALL });
   const [minScore, setMinScore] = useState("");
   const [applied, setApplied] = useState({ q: "", fl: { ...emptyFl, garimpo: search.garimpo ?? ALL }, minScore: "" });
-  const runSearch = () => setApplied({ q, fl, minScore });
+  const [searched, setSearched] = useState(false);
+  const runSearch = () => { setApplied({ q, fl: { ...fl }, minScore }); setSearched(true); };
   const clearFilters = () => {
     setQ(""); setFl(emptyFl); setMinScore("");
-    setApplied({ q: "", fl: emptyFl, minScore: "" });
+    setApplied({ q: "", fl: emptyFl, minScore: "" }); setSearched(false);
   };
   const [sort, setSort] = useState("score");
   const [form, setForm] = useState<{ open: boolean; lead: Lead | null }>({ open: false, lead: null });
@@ -58,10 +59,11 @@ export function LeadsView({ forceKanban }: { forceKanban?: boolean }) {
 
   const rows = useMemo(() => {
     const { fl: af, minScore: ms } = applied;
-    const term = applied.q.trim().toLowerCase();
+    const norm = (v?: string | null) => (v ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    const term = norm(applied.q.trim());
     const digits = term.replace(/\D/g, "");
     const r = (leads ?? []).filter((l) =>
-      (!term || [l.company_name, l.niche, l.city, l.neighborhood, l.phone, l.whatsapp, l.instagram_url].some((v) => v?.toLowerCase().includes(term)) ||
+      (!term || [l.company_name, l.niche, l.city, l.neighborhood, l.phone, l.whatsapp, l.instagram_url].some((v) => norm(v).includes(term)) ||
         (digits.length >= 4 && [l.phone, l.whatsapp].some((v) => v?.replace(/\D/g, "").includes(digits)))) &&
       (af.status === ALL || l.status === af.status) &&
       (af.priority === ALL || l.priority === af.priority) &&
@@ -179,6 +181,11 @@ export function LeadsView({ forceKanban }: { forceKanban?: boolean }) {
             )}
           </div>
 
+          {searched && (
+            <p className="mb-3 text-sm text-muted-foreground" role="status">
+              {rows.length ? `${rows.length} ${rows.length === 1 ? "lead encontrado" : "leads encontrados"}` : "Nenhum lead encontrado com esses filtros."}
+            </p>
+          )}
           {view === "kanban" && arch === "ativos" ? <Kanban leads={rows} /> : !rows.length ? (
             <EmptyState title="Nenhum lead encontrado com esses filtros." />
           ) : (
