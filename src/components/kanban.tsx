@@ -83,7 +83,7 @@ export function Kanban({ leads }: { leads: Lead[] }) {
   return (
     <DndContext sensors={sensors} onDragEnd={onDragEnd}>
       <div className="flex gap-3 overflow-x-auto pb-4">
-        {KANBAN_STATUSES.map((s) => <Column key={s} status={s} leads={leads.filter((l) => l.status === s)} />)}
+        {KANBAN_STATUSES.map((s) => <Column key={s} status={s} leads={leads.filter((l) => columnOf(l.status) === s)} />)}
       </div>
     </DndContext>
   );
