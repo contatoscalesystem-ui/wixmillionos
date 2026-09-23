@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,9 +10,8 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PageHeader } from "@/components/crm";
 import { useAuth } from "@/hooks/use-auth";
-import { friendlyError, type Tables } from "@/lib/crm";
-import { useInvalidate, useProfiles, useTemplates } from "@/lib/queries";
-import { useQuery } from "@tanstack/react-query";
+import { friendlyError } from "@/lib/crm";
+import { useInvalidate, useTemplates } from "@/lib/queries";
 
 export const Route = createFileRoute("/_authenticated/configuracoes")({
   head: () => ({
@@ -41,7 +40,7 @@ function Config() {
           ))}
         </TabsList>
         <TabsContent value="perfil"><Profile /></TabsContent>
-        <TabsContent value="equipe"><Team /></TabsContent>
+        <TabsContent value="equipe"><Box><p className="text-sm text-muted-foreground">Membros, convites e permissões ficam na página de Equipe.</p><Button asChild className="mt-3" variant="outline"><Link to="/configuracoes/equipe">Abrir Equipe</Link></Button></Box></TabsContent>
         <TabsContent value="templates"><Templates /></TabsContent>
         <TabsContent value="whatsapp">
           <Box>
@@ -90,44 +89,10 @@ function Profile() {
   );
 }
 
-function Team() {
-  const { role, session } = useAuth();
-  const { data: profiles } = useProfiles();
-  const invalidate = useInvalidate();
-  const rolesQ = useQuery({
-    queryKey: ["user_roles"],
-    queryFn: async () => { const { data, error } = await supabase.from("user_roles").select("*"); if (error) throw error; return data; },
-  });
-  const roleOf = (id: string) => (rolesQ.data?.some((r) => r.user_id === id && r.role === "admin") ? "admin" : "operador");
-  const toggle = async (p: Tables<"profiles">) => {
-    const makeAdmin = roleOf(p.id) !== "admin";
-    const { error } = makeAdmin
-      ? await supabase.from("user_roles").insert({ user_id: p.id, workspace_id: p.workspace_id, role: "admin" })
-      : await supabase.from("user_roles").delete().eq("user_id", p.id).eq("role", "admin");
-    if (error) return toast.error(friendlyError(error));
-    toast.success("Papel atualizado.");
-    invalidate("user_roles");
-  };
-  return (
-    <Box>
-      <p className="mb-3 text-sm text-muted-foreground">Novos operadores entram criando conta na tela de login.</p>
-      <ul className="divide-y">
-        {(profiles ?? []).map((p) => (
-          <li key={p.id} className="flex items-center justify-between py-3 text-sm">
-            <div><div className="font-medium">{p.full_name || "—"}</div><div className="text-xs text-muted-foreground">{p.email}</div></div>
-            <div className="flex items-center gap-3">
-              <span className="capitalize text-muted-foreground">{roleOf(p.id)}</span>
-              {role === "admin" && p.id !== session?.user.id && <Button size="sm" variant="outline" onClick={() => toggle(p)}>{roleOf(p.id) === "admin" ? "Tornar operador" : "Tornar admin"}</Button>}
-            </div>
-          </li>
-        ))}
-      </ul>
-    </Box>
-  );
-}
-
 function Templates() {
   const { data } = useTemplates();
+  const { role } = useAuth();
+  const isAdmin = role === "admin";
   const invalidate = useInvalidate();
   const [edit, setEdit] = useState<{ id?: string; name: string; stage: string; content: string; is_active: boolean } | null>(null);
   const save = async () => {
@@ -140,7 +105,7 @@ function Templates() {
   };
   return (
     <Box>
-      <p className="mb-3 text-sm text-muted-foreground">Variáveis disponíveis: [NOME_DA_EMPRESA], [NICHO], [CIDADE].</p>
+      <p className="mb-3 text-sm text-muted-foreground">Variáveis disponíveis: [NOME_DA_EMPRESA], [NICHO], [CIDADE].{!isAdmin && " Somente administradores editam templates."}</p>
       {edit ? (
         <div className="space-y-3">
           <div className="grid gap-3 sm:grid-cols-2">
@@ -157,11 +122,11 @@ function Templates() {
             {(data ?? []).map((t) => (
               <li key={t.id} className="flex items-center justify-between py-3 text-sm">
                 <div><div className="font-medium">{t.name}</div><div className="text-xs text-muted-foreground">{t.stage ?? "—"} · {t.is_active ? "Ativo" : "Inativo"}</div></div>
-                <Button size="sm" variant="outline" onClick={() => setEdit({ id: t.id, name: t.name, stage: t.stage ?? "", content: t.content, is_active: t.is_active })}>Editar</Button>
+                {isAdmin && <Button size="sm" variant="outline" onClick={() => setEdit({ id: t.id, name: t.name, stage: t.stage ?? "", content: t.content, is_active: t.is_active })}>Editar</Button>}
               </li>
             ))}
           </ul>
-          <Button className="mt-3" variant="outline" onClick={() => setEdit({ name: "", stage: "", content: "", is_active: true })}>Novo template</Button>
+          {isAdmin && <Button className="mt-3" variant="outline" onClick={() => setEdit({ name: "", stage: "", content: "", is_active: true })}>Novo template</Button>}
         </>
       )}
     </Box>

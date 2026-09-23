@@ -107,6 +107,12 @@ export function fmtMoney(v: number, currency = "BRL") {
 
 export const friendlyError = (e: unknown) => {
   console.error(e);
+  const msg = String((e as { message?: string } | null)?.message ?? "");
+  if (msg.includes("LAST_ADMIN")) return "O espaço de trabalho precisa ter pelo menos um admin.";
+  if (msg.includes("SIGNUP_INVITE_ONLY")) return "Novos acessos são liberados somente por convite.";
+  if (msg.includes("LEAD_NOT_FOUND")) return "Lead não encontrado.";
+  if (/duplicate key|unique/i.test(msg)) return "Já existe um registro com esses dados.";
+  if (/row-level security|permission denied/i.test(msg)) return "Você não tem permissão para esta ação.";
   return "Não foi possível concluir a ação. Tente novamente.";
 };
 

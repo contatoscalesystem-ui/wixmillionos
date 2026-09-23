@@ -282,6 +282,75 @@ export type Database = {
           },
         ]
       }
+      import_batches: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          duplicate_rows: number
+          file_name: string | null
+          file_type: string | null
+          file_url: string | null
+          garimpo_id: string | null
+          id: string
+          imported_rows: number
+          invalid_rows: number
+          status: Database["public"]["Enums"]["import_batch_status"]
+          total_rows: number
+          valid_rows: number
+          workspace_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          duplicate_rows?: number
+          file_name?: string | null
+          file_type?: string | null
+          file_url?: string | null
+          garimpo_id?: string | null
+          id?: string
+          imported_rows?: number
+          invalid_rows?: number
+          status?: Database["public"]["Enums"]["import_batch_status"]
+          total_rows?: number
+          valid_rows?: number
+          workspace_id?: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          duplicate_rows?: number
+          file_name?: string | null
+          file_type?: string | null
+          file_url?: string | null
+          garimpo_id?: string | null
+          id?: string
+          imported_rows?: number
+          invalid_rows?: number
+          status?: Database["public"]["Enums"]["import_batch_status"]
+          total_rows?: number
+          valid_rows?: number
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "import_batches_garimpo_id_fkey"
+            columns: ["garimpo_id"]
+            isOneToOne: false
+            referencedRelation: "garimpos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "import_batches_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lead_activities: {
         Row: {
           activity_type: string
@@ -437,6 +506,8 @@ export type Database = {
       leads: {
         Row: {
           address: string | null
+          archived_at: string | null
+          archived_by: string | null
           assigned_to: string | null
           city: string | null
           commercial_observation: string | null
@@ -449,6 +520,9 @@ export type Database = {
           google_rating: number | null
           google_reviews: number | null
           id: string
+          import_batch_id: string | null
+          imported_at: string | null
+          imported_by: string | null
           instagram_followers: number | null
           instagram_url: string | null
           last_contact_at: string | null
@@ -474,6 +548,8 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           assigned_to?: string | null
           city?: string | null
           commercial_observation?: string | null
@@ -486,6 +562,9 @@ export type Database = {
           google_rating?: number | null
           google_reviews?: number | null
           id?: string
+          import_batch_id?: string | null
+          imported_at?: string | null
+          imported_by?: string | null
           instagram_followers?: number | null
           instagram_url?: string | null
           last_contact_at?: string | null
@@ -511,6 +590,8 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          archived_at?: string | null
+          archived_by?: string | null
           assigned_to?: string | null
           city?: string | null
           commercial_observation?: string | null
@@ -523,6 +604,9 @@ export type Database = {
           google_rating?: number | null
           google_reviews?: number | null
           id?: string
+          import_batch_id?: string | null
+          imported_at?: string | null
+          imported_by?: string | null
           instagram_followers?: number | null
           instagram_url?: string | null
           last_contact_at?: string | null
@@ -552,6 +636,13 @@ export type Database = {
             columns: ["garimpo_id"]
             isOneToOne: false
             referencedRelation: "garimpos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_import_batch_id_fkey"
+            columns: ["import_batch_id"]
+            isOneToOne: false
+            referencedRelation: "import_batches"
             referencedColumns: ["id"]
           },
           {
@@ -857,6 +948,53 @@ export type Database = {
           },
         ]
       }
+      workspace_invites: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          created_at: string
+          email: string
+          id: string
+          invited_by: string | null
+          role: Database["public"]["Enums"]["app_role"]
+          status: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          invited_by?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+          status?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          invited_by?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+          status?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_invites_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workspaces: {
         Row: {
           created_at: string
@@ -883,7 +1021,27 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_pending_invite: { Args: never; Returns: boolean }
+      convert_lead_to_client: { Args: { _lead_id: string }; Returns: string }
       current_workspace_id: { Args: never; Returns: string }
+      find_lead_duplicates: {
+        Args: {
+          _city?: string
+          _company?: string
+          _exclude?: string
+          _instagram?: string
+          _maps?: string
+          _phone?: string
+          _website?: string
+          _whatsapp?: string
+        }
+        Returns: {
+          city: string
+          company_name: string
+          lead_id: string
+          reasons: string[]
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -891,6 +1049,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      norm_phone: { Args: { t: string }; Returns: string }
+      norm_text: { Args: { t: string }; Returns: string }
+      norm_url: { Args: { t: string }; Returns: string }
+      signup_open: { Args: never; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "operador"
@@ -901,6 +1063,15 @@ export type Database = {
         | "recebido"
         | "cancelado"
       garimpo_status: "rascunho" | "processado" | "ativo" | "arquivado"
+      import_batch_status:
+        | "uploaded"
+        | "processing"
+        | "preview"
+        | "ready"
+        | "importing"
+        | "completed"
+        | "failed"
+        | "cancelled"
       lead_priority: "A" | "B" | "C" | "D"
       lead_status:
         | "novo"
@@ -1068,6 +1239,16 @@ export const Constants = {
         "cancelado",
       ],
       garimpo_status: ["rascunho", "processado", "ativo", "arquivado"],
+      import_batch_status: [
+        "uploaded",
+        "processing",
+        "preview",
+        "ready",
+        "importing",
+        "completed",
+        "failed",
+        "cancelled",
+      ],
       lead_priority: ["A", "B", "C", "D"],
       lead_status: [
         "novo",

@@ -27,6 +27,11 @@ function LoginPage() {
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [busy, setBusy] = useState(false);
+  const [signupOpen, setSignupOpen] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    supabase.rpc("signup_open").then(({ data }) => setSignupOpen(data ?? false));
+  }, []);
 
   useEffect(() => {
     if (!loading && session) navigate({ to: "/dashboard" });
@@ -52,6 +57,7 @@ function LoginPage() {
       toast.error(
         /invalid login/i.test(msg) ? "E-mail ou senha incorretos."
           : /not confirmed/i.test(msg) ? "Confirme seu e-mail antes de entrar."
+          : /database error saving new user|SIGNUP_INVITE_ONLY/i.test(msg) ? "Novos acessos são liberados somente por convite."
           : /already registered/i.test(msg) ? "Este e-mail já possui conta."
           : /password/i.test(msg) ? "A senha precisa ter pelo menos 6 caracteres."
           : "Não foi possível entrar. Tente novamente.",
@@ -77,8 +83,11 @@ function LoginPage() {
             <div className="text-xs font-semibold tracking-[0.3em] text-gold lg:hidden">WIX MILLION OS</div>
             <h2 className="mt-2 text-2xl font-bold">{mode === "in" ? "Entrar" : "Criar conta"}</h2>
             <p className="text-sm text-muted-foreground">
-              {mode === "in" ? "Acesse a central de operação." : "O primeiro usuário cadastrado vira administrador."}
+              {mode === "in" ? "Acesse a central de operação." : signupOpen ? "O primeiro usuário cadastrado vira administrador." : "Use exatamente o e-mail que recebeu o convite."}
             </p>
+            {mode === "up" && signupOpen === false && (
+              <p role="status" className="mt-3 rounded-md border border-gold/40 bg-gold/10 p-3 text-sm">Novos acessos são liberados somente por convite.</p>
+            )}
           </div>
           {mode === "up" && (
             <div className="space-y-1.5">

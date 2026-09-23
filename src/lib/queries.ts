@@ -7,8 +7,11 @@ async function unwrap<T>(p: PromiseLike<{ data: T | null; error: unknown }>): Pr
   return (data ?? []) as T;
 }
 
+/** Active (non-archived) leads — used everywhere by default. */
 export const useLeads = () =>
-  useQuery({ queryKey: ["leads"], queryFn: () => unwrap(supabase.from("leads").select("*").order("created_at", { ascending: false })) });
+  useQuery({ queryKey: ["leads"], queryFn: () => unwrap(supabase.from("leads").select("*").is("archived_at", null).order("created_at", { ascending: false })) });
+export const useArchivedLeads = (enabled: boolean) =>
+  useQuery({ enabled, queryKey: ["leads", "archived"], queryFn: () => unwrap(supabase.from("leads").select("*").not("archived_at", "is", null).order("archived_at", { ascending: false })) });
 export const useGarimpos = () =>
   useQuery({ queryKey: ["garimpos"], queryFn: () => unwrap(supabase.from("garimpos").select("*").order("created_at", { ascending: false })) });
 export const useProfiles = () =>

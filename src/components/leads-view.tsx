@@ -1,19 +1,21 @@
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Eye, Pencil, Plus, Trash2, Upload, MessageCircle } from "lucide-react";
+import { Archive, ArchiveRestore, Eye, Pencil, Plus, Trash2, Upload, MessageCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ConfirmDialog, EmptyState, PageHeader, PriorityBadge, Score, StatusBadge } from "@/components/crm";
+import { ConfirmDialog, StrongConfirmDialog, EmptyState, PageHeader, PriorityBadge, Score, StatusBadge } from "@/components/crm";
 import { LeadForm } from "@/components/lead-form";
 import { GarimpoForm, ImportSoonDialog } from "@/components/garimpo-form";
 import { Kanban } from "@/components/kanban";
 import { LEAD_STATUS, PRIORITIES, WEBSITE_STATUS, fmtDate, friendlyError, normalizeBrPhone, websiteLabel, type Lead } from "@/lib/crm";
-import { profileName, useGarimpos, useInvalidate, useLeads, useProfiles } from "@/lib/queries";
+import { profileName, useArchivedLeads, useGarimpos, useInvalidate, useLeads, useProfiles } from "@/lib/queries";
+import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
+import { logActivity } from "@/lib/activity";
 
 const ALL = "__all";
 const PRIO_RANK: Record<string, number> = { A: 0, B: 1, C: 2, D: 3 };
@@ -23,7 +25,14 @@ export function LeadsView({ forceKanban }: { forceKanban?: boolean }) {
   const search = forceKanban ? {} : raw;
   const navigate = useNavigate();
   const view = forceKanban ? "kanban" : search.view ?? "tabela";
-  const { data: leads, isLoading } = useLeads();
+  const [arch, setArch] = useState<"ativos" | "arquivados">("ativos");
+  const active = useLeads();
+  const archived = useArchivedLeads(arch === "arquivados" && !forceKanban);
+  const { role, session } = useAuth();
+  const isAdmin = role === "admin";
+  const src = arch === "arquivados" && !forceKanban ? archived : active;
+  const leads = src.data;
+  const isLoading = src.isLoading;
   const { data: garimpos } = useGarimpos();
   const { data: profiles } = useProfiles();
   const invalidate = useInvalidate();
@@ -36,6 +45,7 @@ export function LeadsView({ forceKanban }: { forceKanban?: boolean }) {
   const [gOpen, setGOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [del, setDel] = useState<Lead | null>(null);
+  const [hardDel, setHardDel] = useState<Lead | null>(null);
 
   const uniq = (k: "city" | "niche") => [...new Set((leads ?? []).map((l) => l[k]).filter(Boolean) as string[])].sort();
 
@@ -67,12 +77,22 @@ export function LeadsView({ forceKanban }: { forceKanban?: boolean }) {
     });
   }, [leads, q, fl, minScore, sort]);
 
-  const remove = async () => {
+  const archive = async () => {
     if (!del) return;
-    const { error } = await supabase.from("leads").delete().eq("id", del.id);
-    setDel(null);
+    const l = del; setDel(null);
+    const restoring = !!l.archived_at;
+    const { error } = await supabase.from("leads").update(restoring ? { archived_at: null, archived_by: null } : { archived_at: new Date().toISOString(), archived_by: session?.user.id ?? null }).eq("id", l.id);
     if (error) return toast.error(friendlyError(error));
-    toast.success("Lead excluído.");
+    await logActivity(l.id, restoring ? "restored" : "archived", restoring ? "Lead restaurado" : "Lead arquivado");
+    toast.success(restoring ? "Lead restaurado." : "Lead arquivado.");
+    invalidate("leads", "activities", `lead-${l.id}`);
+  };
+  const hardRemove = async () => {
+    if (!hardDel) return;
+    const l = hardDel; setHardDel(null);
+    const { error } = await supabase.from("leads").delete().eq("id", l.id);
+    if (error) return toast.error(friendlyError(error));
+    toast.success("Lead excluído definitivamente.");
     invalidate("leads", "garimpos", "activities");
   };
 
@@ -92,7 +112,7 @@ export function LeadsView({ forceKanban }: { forceKanban?: boolean }) {
     <div>
       <PageHeader
         title={forceKanban ? "Pipeline" : "Leads"}
-        subtitle={forceKanban ? "Arraste os cards para mudar o status. Salvo automaticamente." : `${rows.length} de ${leads?.length ?? 0} leads`}
+        subtitle={forceKanban ? "Arraste os cards para mudar o status. Salvo automaticamente." : `${rows.length} de ${leads?.length ?? 0} leads${arch === "arquivados" ? " arquivados" : ""}`}
         actions={<>
           {!forceKanban && (
             <div className="flex rounded-md border bg-card p-0.5">
@@ -105,7 +125,16 @@ export function LeadsView({ forceKanban }: { forceKanban?: boolean }) {
         </>}
       />
 
-      {isLoading ? <Skeleton className="h-64" /> : !leads?.length ? (
+      {!forceKanban && (
+        <div className="mb-3 flex gap-1 text-sm">
+          {(["ativos", "arquivados"] as const).map((a) => (
+            <button key={a} onClick={() => setArch(a)} className={cn("rounded-md border px-3 py-1 capitalize", arch === a ? "border-foreground bg-card font-medium" : "border-transparent text-muted-foreground")}>{a === "ativos" ? "Ativos" : "Arquivados"}</button>
+          ))}
+        </div>
+      )}
+      {isLoading ? <Skeleton className="h-64" /> : arch === "arquivados" && !leads?.length ? (
+        <EmptyState title="Nenhum lead arquivado." />
+      ) : !leads?.length ? (
         <EmptyState title="Nenhum lead cadastrado ainda." text="Comece registrando um garimpo ou cadastrando seu primeiro lead.">
           <Button variant="outline" onClick={() => setGOpen(true)}>Novo garimpo</Button>
           <Button onClick={() => setForm({ open: true, lead: null })}>Cadastrar lead</Button>
@@ -138,7 +167,7 @@ export function LeadsView({ forceKanban }: { forceKanban?: boolean }) {
             )}
           </div>
 
-          {view === "kanban" ? <Kanban leads={rows} /> : !rows.length ? (
+          {view === "kanban" && arch === "ativos" ? <Kanban leads={rows} /> : !rows.length ? (
             <EmptyState title="Nenhum lead encontrado com esses filtros." />
           ) : (
             <div className="overflow-x-auto rounded-lg border bg-card">
@@ -168,7 +197,8 @@ export function LeadsView({ forceKanban }: { forceKanban?: boolean }) {
                           <Button asChild size="icon" variant="ghost" aria-label="Abrir ficha"><Link to="/leads/$id" params={{ id: l.id }}><Eye className="h-4 w-4" /></Link></Button>
                           {wa && l.whatsapp_confirmed && <Button asChild size="icon" variant="ghost" aria-label="WhatsApp"><a href={`https://wa.me/${wa}`} target="_blank" rel="noreferrer"><MessageCircle className="h-4 w-4" /></a></Button>}
                           <Button size="icon" variant="ghost" aria-label="Editar" onClick={() => setForm({ open: true, lead: l })}><Pencil className="h-4 w-4" /></Button>
-                          <Button size="icon" variant="ghost" aria-label="Excluir" onClick={() => setDel(l)}><Trash2 className="h-4 w-4" /></Button>
+                          <Button size="icon" variant="ghost" aria-label={l.archived_at ? "Restaurar" : "Arquivar"} title={l.archived_at ? "Restaurar" : "Arquivar"} onClick={() => setDel(l)}>{l.archived_at ? <ArchiveRestore className="h-4 w-4" /> : <Archive className="h-4 w-4" />}</Button>
+                          {isAdmin && <Button size="icon" variant="ghost" aria-label="Excluir definitivamente" title="Excluir definitivamente" onClick={() => setHardDel(l)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
                         </td>
                       </tr>
                     );
@@ -183,7 +213,8 @@ export function LeadsView({ forceKanban }: { forceKanban?: boolean }) {
       <LeadForm open={form.open} lead={form.lead} defaultGarimpo={fl.garimpo !== ALL ? fl.garimpo : undefined} onOpenChange={(o) => setForm({ open: o, lead: o ? form.lead : null })} />
       <GarimpoForm open={gOpen} onOpenChange={setGOpen} />
       <ImportSoonDialog open={importOpen} onOpenChange={setImportOpen} />
-      <ConfirmDialog open={!!del} onOpenChange={(o) => !o && setDel(null)} destructive title="Excluir lead?" text={`"${del?.company_name}" e todo o histórico serão removidos.`} confirmLabel="Excluir" onConfirm={remove} />
+      <ConfirmDialog open={!!del} onOpenChange={(o) => !o && setDel(null)} title={del?.archived_at ? "Restaurar lead?" : "Arquivar lead?"} text={del?.archived_at ? `"${del?.company_name}" volta para a lista de leads ativos.` : `"${del?.company_name}" sai das listas, mas timeline, notas e origem são mantidas. Pode ser encontrado em Arquivados.`} confirmLabel={del?.archived_at ? "Restaurar" : "Arquivar"} onConfirm={archive} />
+      <StrongConfirmDialog open={!!hardDel} onOpenChange={(o) => !o && setHardDel(null)} title="Excluir definitivamente?" text="O lead, suas notas, etiquetas e timeline serão apagados para sempre. Esta ação não pode ser desfeita." phrase={hardDel?.company_name ?? ""} confirmLabel="Excluir definitivamente" onConfirm={hardRemove} />
     </div>
   );
 }
