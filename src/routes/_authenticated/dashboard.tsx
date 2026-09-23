@@ -72,7 +72,7 @@ function Dashboard() {
         <StatCard label="Interessados" value={count("interessado")} />
         <StatCard label="Links enviados" value={count("link_enviado")} />
         <StatCard label="Convertidos" value={count("convertido")} highlight />
-        <StatCard label="Em recuperação" value={count("recuperacao")} />
+        <StatCard label="Em recuperação" value={count("recuperacao") + count("sem_resposta")} />
         <StatCard label="Sites em produção" value={sitesProd} />
         <StatCard label="Sites publicados" value={P.length - sitesProd} />
         <StatCard label="Comissão prevista" value={<span className="text-lg">{sumByCurrency(F, com)}</span>} highlight />

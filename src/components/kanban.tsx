@@ -24,6 +24,9 @@ function Card({ lead }: { lead: Lead }) {
         </Link>
         <PriorityBadge p={lead.priority} />
       </div>
+      {(lead.status === "sem_resposta" || lead.status === "recuperacao") && (
+        <span className="mt-1.5 inline-flex rounded-full border px-2 py-0.5 text-[11px] text-muted-foreground">{statusLabel(lead.status)}</span>
+      )}
       <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
         <span className="truncate">{[lead.niche, lead.city].filter(Boolean).join(" · ") || "—"}</span>
         <Score v={lead.score} />
@@ -31,6 +34,9 @@ function Card({ lead }: { lead: Lead }) {
     </div>
   );
 }
+
+// "sem_resposta" is shown in the Recuperação column without changing the stored status.
+const columnOf = (s: LeadStatus): LeadStatus => (s === "sem_resposta" ? "recuperacao" : s);
 
 function Column({ status, leads }: { status: LeadStatus; leads: Lead[] }) {
   const { setNodeRef, isOver } = useDroppable({ id: status });
@@ -77,7 +83,7 @@ export function Kanban({ leads }: { leads: Lead[] }) {
   return (
     <DndContext sensors={sensors} onDragEnd={onDragEnd}>
       <div className="flex gap-3 overflow-x-auto pb-4">
-        {KANBAN_STATUSES.map((s) => <Column key={s} status={s} leads={leads.filter((l) => l.status === s)} />)}
+        {KANBAN_STATUSES.map((s) => <Column key={s} status={s} leads={leads.filter((l) => columnOf(l.status) === s)} />)}
       </div>
     </DndContext>
   );
