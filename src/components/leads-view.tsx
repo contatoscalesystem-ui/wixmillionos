@@ -183,7 +183,7 @@ export function LeadsView({ forceKanban }: { forceKanban?: boolean }) {
 
           {searched && (
             <p className="mb-3 text-sm text-muted-foreground" role="status">
-              {rows.length ? `${rows.length} ${rows.length === 1 ? "lead encontrado" : "leads encontrados"}` : "Nenhum lead encontrado com esses filtros."}
+              {rows.length ? `${rows.length} ${rows.length === 1 ? "lead encontrado" : "leads encontrados"}` : "0 leads encontrados — nenhum lead encontrado com esses filtros."}
             </p>
           )}
           {view === "kanban" && arch === "ativos" ? <Kanban leads={rows} statusFilter={applied.fl.status !== ALL ? (applied.fl.status as Lead["status"]) : null} /> : !rows.length ? (
