@@ -24,7 +24,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       supabase.from("profiles").select("*").eq("id", uid).maybeSingle(),
       supabase.from("user_roles").select("role").eq("user_id", uid),
     ]);
-    setProfile(p ?? null);
+    if (!r?.length) {
+      // Signed in without access: accept a pending invite for this e-mail, if any.
+      const { data: accepted } = await supabase.rpc("accept_pending_invite");
+      if (accepted) return loadProfile(uid);
+    }
+    setProfile(r?.length ? (p ?? null) : null);
     setRole(r?.some((x) => x.role === "admin") ? "admin" : r?.length ? "operador" : null);
   };
 

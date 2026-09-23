@@ -167,7 +167,7 @@ export function LeadsView({ forceKanban }: { forceKanban?: boolean }) {
             )}
           </div>
 
-          {view === "kanban" ? <Kanban leads={rows} /> : !rows.length ? (
+          {view === "kanban" && arch === "ativos" ? <Kanban leads={rows} /> : !rows.length ? (
             <EmptyState title="Nenhum lead encontrado com esses filtros." />
           ) : (
             <div className="overflow-x-auto rounded-lg border bg-card">
