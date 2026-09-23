@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Pencil } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
+import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { EmptyState, PageHeader } from "@/components/crm";
+import { EmptyState, PageHeader, StrongConfirmDialog } from "@/components/crm";
 import { PROJECT_STATUS, fmtDate, friendlyError, labelOf, type ProjectStatus, type Tables } from "@/lib/crm";
 import { profileName, useClients, useInvalidate, useProfiles, useProjects } from "@/lib/queries";
 
@@ -35,6 +36,9 @@ function ProducaoPage() {
   const { data: profiles } = useProfiles();
   const invalidate = useInvalidate();
   const [edit, setEdit] = useState<P | null>(null);
+  const [del, setDel] = useState<P | null>(null);
+  const { role } = useAuth();
+  const isAdmin = role === "admin";
   const [f, setF] = useState({ status: "aguardando" as ProjectStatus, responsible_user_id: NONE, preview_url: "", published_url: "", due_date: "", notes: "" });
 
   const openEdit = (p: P) => {
@@ -53,6 +57,14 @@ function ProducaoPage() {
     invalidate("site_projects");
   };
   const clientName = (id: string) => clients?.find((c) => c.id === id)?.company_name ?? "—";
+  const remove = async () => {
+    if (!del) return;
+    const p = del; setDel(null);
+    const { error } = await supabase.from("site_projects").delete().eq("id", p.id);
+    if (error) return toast.error(friendlyError(error));
+    toast.success("Projeto excluído definitivamente.");
+    invalidate("site_projects");
+  };
 
   return (
     <div>
@@ -63,7 +75,7 @@ function ProducaoPage() {
         <div className="overflow-x-auto rounded-lg border bg-card">
           <table className="w-full min-w-[900px] text-sm">
             <thead className="border-b text-left text-xs uppercase tracking-wide text-muted-foreground">
-              <tr>{["Cliente", "Projeto", "Responsável", "Status", "Prazo", "Preview", "URL publicada", ""].map((h) => <th key={h} className="px-4 py-3 font-medium">{h}</th>)}</tr>
+              <tr>{["Cliente", "Projeto", "Responsável", "Status", "Prazo", "Preview", "URL publicada", "Ações"].map((h) => <th key={h} className={`px-4 py-3 font-medium ${h === "Ações" ? "text-right" : ""}`}>{h}</th>)}</tr>
             </thead>
             <tbody>
               {data.map((p) => (
@@ -75,7 +87,10 @@ function ProducaoPage() {
                   <td className="px-4 py-3">{fmtDate(p.due_date)}</td>
                   <td className="px-4 py-3">{p.preview_url ? <a className="underline" href={p.preview_url} target="_blank" rel="noreferrer">Abrir</a> : "—"}</td>
                   <td className="px-4 py-3">{p.published_url ? <a className="underline" href={p.published_url} target="_blank" rel="noreferrer">Abrir</a> : "—"}</td>
-                  <td className="px-4 py-3 text-right"><Button size="icon" variant="ghost" aria-label="Editar" onClick={() => openEdit(p)}><Pencil className="h-4 w-4" /></Button></td>
+                  <td className="px-4 py-3 text-right"><div className="flex justify-end gap-1">
+                    <Button size="icon" variant="ghost" aria-label="Editar" onClick={() => openEdit(p)}><Pencil className="h-4 w-4" /></Button>
+                    {isAdmin && <Button size="icon" variant="ghost" aria-label="Excluir projeto" onClick={() => setDel(p)}><Trash2 className="h-4 w-4" /></Button>}
+                  </div></td>
                 </tr>
               ))}
             </tbody>
@@ -100,6 +115,7 @@ function ProducaoPage() {
           <DialogFooter><Button variant="outline" onClick={() => setEdit(null)}>Cancelar</Button><Button onClick={save}>Salvar</Button></DialogFooter>
         </DialogContent>
       </Dialog>
+      <StrongConfirmDialog open={!!del} onOpenChange={(o) => !o && setDel(null)} text="Somente o projeto será apagado. Cliente, lead, financeiro e garimpo continuam existindo." onConfirm={remove} />
     </div>
   );
 }
