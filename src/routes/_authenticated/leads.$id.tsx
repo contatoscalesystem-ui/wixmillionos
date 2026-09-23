@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ConfirmDialog, StrongConfirmDialog, EmptyState, Info, PriorityBadge, Score, StatusBadge } from "@/components/crm";
+import { leadDeleteBlocker } from "@/lib/deletes";
 import { LeadForm } from "@/components/lead-form";
 import { LEAD_STATUS, fillTemplate, fmtDate, friendlyError, normalizeBrPhone, statusLabel, waLink, websiteLabel, type Lead, type LeadStatus } from "@/lib/crm";
 import { ACTIVITY_LABEL, logActivity } from "@/lib/activity";
@@ -126,6 +127,8 @@ function LeadPage() {
 
   const remove = async () => {
     setDel(false);
+    const blocker = await leadDeleteBlocker(lead.id);
+    if (blocker) return toast.error(blocker);
     const { error } = await supabase.from("leads").delete().eq("id", lead.id);
     if (error) return toast.error(friendlyError(error));
     toast.success("Lead excluído definitivamente.");
@@ -232,7 +235,7 @@ function LeadPage() {
 
       <LeadForm open={edit} onOpenChange={setEdit} lead={lead} onSaved={() => refresh()} />
       <ConfirmDialog open={archOpen} onOpenChange={setArchOpen} title={lead.archived_at ? "Restaurar lead?" : "Arquivar lead?"} text={lead.archived_at ? "O lead volta para a lista de leads ativos." : "O lead sai das listas, mas timeline, notas e origem são mantidas. Pode ser encontrado em Leads > Arquivados."} confirmLabel={lead.archived_at ? "Restaurar" : "Arquivar"} onConfirm={toggleArchive} />
-      <StrongConfirmDialog open={del} onOpenChange={setDel} title="Excluir definitivamente?" text="O lead, suas notas, etiquetas e timeline serão apagados para sempre. Esta ação não pode ser desfeita." phrase={lead.company_name} confirmLabel="Excluir definitivamente" onConfirm={remove} />
+      <StrongConfirmDialog open={del} onOpenChange={setDel} text="O lead, suas notas, etiquetas e timeline serão apagados para sempre. Cliente, projeto e financeiro vinculados não são apagados — se existirem, a exclusão é bloqueada." onConfirm={remove} />
       <ConfirmDialog open={!!waConfirm} onOpenChange={(o) => !o && setWaConfirm(null)} title="WhatsApp não confirmado" text="Este número ainda não foi confirmado como WhatsApp. Deseja abrir mesmo assim como tentativa?" confirmLabel="Abrir mesmo assim"
         onConfirm={async () => { const u = waConfirm; setWaConfirm(null); if (u) { window.open(u, "_blank", "noopener"); await logActivity(lead.id, "whatsapp_opened", "WhatsApp aberto (número não confirmado)", { number: waNum }); invalidate(`acts-${id}`); } }} />
       <ConfirmDialog open={convertOpen} onOpenChange={setConvertOpen} title="Converter em cliente?" text={`Um cliente será criado a partir de "${lead.company_name}" e o lead ficará como Convertido.`} confirmLabel="Converter" onConfirm={convert} />
