@@ -1,10 +1,40 @@
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { statusLabel } from "@/lib/crm";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription,
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+
+/** Destructive confirmation that requires typing an exact phrase. */
+export function StrongConfirmDialog({ open, onOpenChange, title, text, phrase, confirmLabel, onConfirm }: {
+  open: boolean; onOpenChange: (o: boolean) => void; title: string; text: string; phrase: string; confirmLabel: string; onConfirm: () => void;
+}) {
+  const [v, setV] = useState("");
+  useEffect(() => { if (!open) setV(""); }, [open]);
+  const ok = v.trim() === phrase.trim();
+  return (
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{title}</AlertDialogTitle>
+          <AlertDialogDescription>{text}</AlertDialogDescription>
+        </AlertDialogHeader>
+        <div className="space-y-1.5">
+          <p className="text-sm">Para confirmar, digite <span className="font-semibold">{phrase}</span>:</p>
+          <Input aria-label="Confirmação" value={v} onChange={(e) => setV(e.target.value)} />
+        </div>
+        <AlertDialogFooter>
+          <AlertDialogCancel>Cancelar</AlertDialogCancel>
+          <Button variant="destructive" disabled={!ok} onClick={onConfirm}>{confirmLabel}</Button>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
+
 
 export function PageHeader({ title, subtitle, actions }: { title: string; subtitle?: string; actions?: ReactNode }) {
   return (
