@@ -14,6 +14,7 @@ import { Kanban } from "@/components/kanban";
 import { LEAD_STATUS, PRIORITIES, WEBSITE_STATUS, fmtDate, friendlyError, normalizeBrPhone, websiteLabel, type Lead } from "@/lib/crm";
 import { profileName, useArchivedLeads, useGarimpos, useInvalidate, useLeads, useProfiles } from "@/lib/queries";
 import { useAuth } from "@/hooks/use-auth";
+import { leadDeleteBlocker } from "@/lib/deletes";
 import { cn } from "@/lib/utils";
 import { logActivity } from "@/lib/activity";
 
@@ -102,6 +103,8 @@ export function LeadsView({ forceKanban }: { forceKanban?: boolean }) {
   const hardRemove = async () => {
     if (!hardDel) return;
     const l = hardDel; setHardDel(null);
+    const blocker = await leadDeleteBlocker(l.id);
+    if (blocker) return toast.error(blocker);
     const { error } = await supabase.from("leads").delete().eq("id", l.id);
     if (error) return toast.error(friendlyError(error));
     toast.success("Lead excluído definitivamente.");
@@ -233,7 +236,7 @@ export function LeadsView({ forceKanban }: { forceKanban?: boolean }) {
       <GarimpoForm open={gOpen} onOpenChange={setGOpen} />
       <ImportSoonDialog open={importOpen} onOpenChange={setImportOpen} />
       <ConfirmDialog open={!!del} onOpenChange={(o) => !o && setDel(null)} title={del?.archived_at ? "Restaurar lead?" : "Arquivar lead?"} text={del?.archived_at ? `"${del?.company_name}" volta para a lista de leads ativos.` : `"${del?.company_name}" sai das listas, mas timeline, notas e origem são mantidas. Pode ser encontrado em Arquivados.`} confirmLabel={del?.archived_at ? "Restaurar" : "Arquivar"} onConfirm={archive} />
-      <StrongConfirmDialog open={!!hardDel} onOpenChange={(o) => !o && setHardDel(null)} title="Excluir definitivamente?" text="O lead, suas notas, etiquetas e timeline serão apagados para sempre. Esta ação não pode ser desfeita." phrase={hardDel?.company_name ?? ""} confirmLabel="Excluir definitivamente" onConfirm={hardRemove} />
+      <StrongConfirmDialog open={!!hardDel} onOpenChange={(o) => !o && setHardDel(null)} text="O lead, suas notas, etiquetas e timeline serão apagados para sempre. Cliente, projeto e financeiro vinculados não são apagados — se existirem, a exclusão é bloqueada." onConfirm={hardRemove} />
     </div>
   );
 }

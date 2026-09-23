@@ -8,22 +8,22 @@ import {
   AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-/** Destructive confirmation that requires typing an exact phrase. */
-export function StrongConfirmDialog({ open, onOpenChange, title, text, phrase, confirmLabel, onConfirm }: {
-  open: boolean; onOpenChange: (o: boolean) => void; title: string; text: string; phrase: string; confirmLabel: string; onConfirm: () => void;
+/** Destructive confirmation that requires typing a phrase (case-insensitive, trimmed). Defaults to "EXCLUIR". */
+export function StrongConfirmDialog({ open, onOpenChange, title = "Excluir definitivamente?", text, phrase = "EXCLUIR", confirmLabel = "Excluir definitivamente", onConfirm }: {
+  open: boolean; onOpenChange: (o: boolean) => void; title?: string; text: string; phrase?: string; confirmLabel?: string; onConfirm: () => void;
 }) {
   const [v, setV] = useState("");
   useEffect(() => { if (!open) setV(""); }, [open]);
-  const ok = v.trim() === phrase.trim();
+  const ok = v.trim().toLowerCase() === phrase.trim().toLowerCase();
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>{title}</AlertDialogTitle>
-          <AlertDialogDescription>{text}</AlertDialogDescription>
+          <AlertDialogDescription>{text} Esta ação não pode ser desfeita.</AlertDialogDescription>
         </AlertDialogHeader>
         <div className="space-y-1.5">
-          <p className="text-sm">Para confirmar, digite <span className="font-semibold">{phrase}</span>:</p>
+          <p className="text-sm">Para confirmar, digite: <span className="font-semibold">{phrase}</span></p>
           <Input aria-label="Confirmação" value={v} onChange={(e) => setV(e.target.value)} />
         </div>
         <AlertDialogFooter>
