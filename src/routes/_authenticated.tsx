@@ -37,7 +37,7 @@ function AppLayout() {
   }, [loading, session, navigate]);
   useEffect(() => setOpen(false), [pathname]);
 
-  if (loading || !session) {
+  if (loading || !session || !checked) {
     return (
       <div className="flex min-h-screen">
         <div className="hidden w-64 bg-sidebar lg:block" />
