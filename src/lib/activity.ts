@@ -19,4 +19,6 @@ export const ACTIVITY_LABEL: Record<string, string> = {
   converted: "Convertido em cliente",
   project_created: "Projeto criado",
   tag_added: "Etiqueta adicionada",
+  archived: "Lead arquivado",
+  restored: "Lead restaurado",
 };
