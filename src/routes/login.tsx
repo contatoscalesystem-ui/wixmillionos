@@ -57,7 +57,7 @@ function LoginPage() {
   return (
     <div className="grid min-h-[100dvh] w-full bg-[#FAFAF7] lg:h-screen lg:grid-cols-2 lg:overflow-hidden">
       <div className="relative hidden h-full overflow-hidden bg-[#101010] lg:block">
-        <img src={panelAsset.url} alt="WIX MILLION OS — Central de operação comercial" className="absolute inset-0 h-full w-full object-cover object-center" />
+        <img src={panelAsset.url} alt="WIX MILLION OS — Central de operação comercial" className="absolute inset-0 h-full w-full object-cover object-left" />
       </div>
       <div className="flex items-center justify-center px-6 py-10 lg:py-6">
         <form onSubmit={submit} className="w-[min(470px,100%)]">
