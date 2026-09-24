@@ -1,5 +1,8 @@
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Pin, PinOff } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { DualScroll } from "@/components/dual-scroll";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
@@ -21,6 +24,11 @@ import { cn } from "@/lib/utils";
 import { logActivity } from "@/lib/activity";
 
 const ALL = "__all";
+async function unwrapLeads(garimpoId: string) {
+  const { data, error } = await supabase.from("leads").select("*").is("archived_at", null).eq("garimpo_id", garimpoId).order("created_at", { ascending: false });
+  if (error) throw error;
+  return data ?? [];
+}
 const PRIO_RANK: Record<string, number> = { A: 0, B: 1, C: 2, D: 3 };
 
 export function LeadsView({ forceKanban }: { forceKanban?: boolean }) {
@@ -29,11 +37,33 @@ export function LeadsView({ forceKanban }: { forceKanban?: boolean }) {
   const navigate = useNavigate();
   const view = forceKanban ? "kanban" : search.view ?? "tabela";
   const [arch, setArch] = useState<"ativos" | "arquivados">("ativos");
+  const { role, session, profile } = useAuth();
+  const uid = session?.user.id;
+  const wsId = (profile as { workspace_id?: string } | null)?.workspace_id;
+  const qcl = useQueryClient();
+  // Pipeline: pinned garimpo preference (per user + workspace, stored in DB).
+  const pref = useQuery({
+    enabled: !!forceKanban && !!uid && !!wsId,
+    queryKey: ["user_preferences", uid, wsId],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("user_preferences").select("pinned_pipeline_garimpo_id").eq("user_id", uid!).eq("workspace_id", wsId!).maybeSingle();
+      if (error) throw error;
+      return data?.pinned_pipeline_garimpo_id ?? null;
+    },
+  });
+  const pinned = pref.data ?? null;
+  const [pipeGarimpo, setPipeGarimpo] = useState<string | null>(null);
+  const initRef = useRef(false);
+  const serverGarimpo = forceKanban && pipeGarimpo && pipeGarimpo !== ALL ? pipeGarimpo : null;
+  const byGarimpo = useQuery({
+    enabled: !!serverGarimpo,
+    queryKey: ["leads", "garimpo", serverGarimpo],
+    queryFn: () => unwrapLeads(serverGarimpo!),
+  });
   const active = useLeads();
   const archived = useArchivedLeads(arch === "arquivados" && !forceKanban);
-  const { role, session } = useAuth();
   const isAdmin = role === "admin";
-  const src = arch === "arquivados" && !forceKanban ? archived : active;
+  const src = serverGarimpo ? byGarimpo : arch === "arquivados" && !forceKanban ? archived : active;
   const leads = src.data;
   const isLoading = src.isLoading;
   const { data: garimpos } = useGarimpos();
@@ -51,6 +81,43 @@ export function LeadsView({ forceKanban }: { forceKanban?: boolean }) {
     setQ(""); setFl(emptyFl); setMinScore("");
     setApplied({ q: "", fl: emptyFl, minScore: "" }); setSearched(false);
   };
+  const { data: garimposList, isFetched: garimposFetched } = useGarimpos();
+  // Apply pinned garimpo once, before rendering the board (no flicker).
+  useEffect(() => {
+    if (!forceKanban || initRef.current || !pref.isFetched || !garimposFetched) return;
+    initRef.current = true;
+    const valid = pinned && garimposList?.some((g) => g.id === pinned) ? pinned : null;
+    if (pinned && !valid) void savePin(null);
+    const g = valid ?? ALL;
+    setFl((f) => ({ ...f, garimpo: g }));
+    setApplied((a) => ({ ...a, fl: { ...a.fl, garimpo: g } }));
+    setPipeGarimpo(g);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [forceKanban, pref.isFetched, garimposFetched]);
+  useEffect(() => { if (forceKanban && initRef.current) setPipeGarimpo(applied.fl.garimpo); }, [forceKanban, applied.fl.garimpo]);
+  const savePin = async (gid: string | null) => {
+    if (!uid || !wsId) return;
+    const { error } = await supabase.from("user_preferences").upsert({ user_id: uid, workspace_id: wsId, pinned_pipeline_garimpo_id: gid }, { onConflict: "user_id,workspace_id" });
+    if (error) { toast.error(friendlyError(error)); return false; }
+    qcl.setQueryData(["user_preferences", uid, wsId], gid);
+    return true;
+  };
+  const togglePin = async () => {
+    const current = fl.garimpo !== ALL ? fl.garimpo : null;
+    if (pinned && (!current || current === pinned)) {
+      if (await savePin(null)) {
+        toast.success("Garimpo desafixado.");
+        setFl((f) => ({ ...f, garimpo: ALL })); setApplied((a) => ({ ...a, fl: { ...a.fl, garimpo: ALL } }));
+      }
+      return;
+    }
+    if (!current) return toast.error("Escolha um garimpo para fixar.");
+    if (await savePin(current)) {
+      toast.success("Garimpo fixado no Pipeline.");
+      setApplied((a) => ({ ...a, fl: { ...a.fl, garimpo: current } }));
+    }
+  };
+  const pipelineWaiting = !!forceKanban && (!initRef.current || (!!serverGarimpo && byGarimpo.isLoading));
   const [sort, setSort] = useState("score");
   const [form, setForm] = useState<{ open: boolean; lead: Lead | null }>({ open: false, lead: null });
   const [gOpen, setGOpen] = useState(false);
@@ -203,9 +270,9 @@ export function LeadsView({ forceKanban }: { forceKanban?: boolean }) {
           ))}
         </div>
       )}
-      {isLoading ? <Skeleton className="h-64" /> : arch === "arquivados" && !leads?.length ? (
+      {isLoading || pipelineWaiting ? <Skeleton className="h-64" /> : arch === "arquivados" && !leads?.length ? (
         <EmptyState title="Nenhum lead arquivado." />
-      ) : !leads?.length ? (
+      ) : !leads?.length && !serverGarimpo ? (
         <EmptyState title="Nenhum lead cadastrado ainda." text="Comece registrando um garimpo ou cadastrando seu primeiro lead.">
           <Button variant="outline" onClick={() => setGOpen(true)}>Novo garimpo</Button>
           <Button onClick={() => setForm({ open: true, lead: null })}>Cadastrar lead</Button>
@@ -220,7 +287,22 @@ export function LeadsView({ forceKanban }: { forceKanban?: boolean }) {
             <Input placeholder="Score mín." inputMode="decimal" value={minScore} onChange={(e) => setMinScore(e.target.value.replace(/[^\d.]/g, ""))} onKeyDown={(e) => { if (e.key === "Enter") runSearch(); }} className="h-9 w-[calc(50%-0.25rem)] sm:w-28" />
             <F k="city" label="Cidade" items={uniq("city").map((c) => ({ value: c, label: c }))} />
             <F k="niche" label="Nicho" items={uniq("niche").map((c) => ({ value: c, label: c }))} />
-            <F k="garimpo" label="Garimpo" items={(garimpos ?? []).map((g) => ({ value: g.id, label: g.name }))} />
+            <div className="flex items-center gap-1">
+              <F k="garimpo" label="Garimpo" items={(garimpos ?? []).map((g) => ({ value: g.id, label: (g.id === pinned ? "📌 " : "") + g.name }))} />
+              {forceKanban && (() => {
+                const isPinnedSel = !!pinned && (fl.garimpo === pinned || fl.garimpo === ALL);
+                return (
+                  <TooltipProvider><Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button type="button" variant="outline" className={cn("h-9 bg-card", isPinnedSel && "border-gold text-gold")} onClick={togglePin}>
+                        {isPinnedSel ? <><PinOff className="mr-1 h-4 w-4" />Desafixar</> : <><Pin className="mr-1 h-4 w-4" />Fixar</>}
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>{isPinnedSel ? "Garimpo fixado: carregado automaticamente no Pipeline. Clique para desafixar." : "Este garimpo será carregado automaticamente no Pipeline."}</TooltipContent>
+                  </Tooltip></TooltipProvider>
+                );
+              })()}
+            </div>
             <F k="assigned" label="Responsável" items={(profiles ?? []).map((p) => ({ value: p.id, label: p.full_name || p.email || "—" }))} />
             <F k="site" label="Site" items={WEBSITE_STATUS} />
             <Button className="h-9 bg-gold text-gold-foreground hover:bg-gold/90" onClick={runSearch}><Search className="mr-1 h-4 w-4" />Buscar</Button>
