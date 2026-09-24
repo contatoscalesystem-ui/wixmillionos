@@ -1,5 +1,6 @@
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
+import { DualScroll } from "@/components/dual-scroll";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Archive, ArchiveRestore, Eye, Pencil, Plus, Trash2, Upload, MessageCircle, Search, X } from "lucide-react";
@@ -266,8 +267,9 @@ export function LeadsView({ forceKanban }: { forceKanban?: boolean }) {
           {view === "kanban" && arch === "ativos" ? <Kanban leads={rows} statusFilter={applied.fl.status !== ALL ? (applied.fl.status as Lead["status"]) : null} /> : !rows.length ? (
             <EmptyState title="Nenhum lead encontrado com esses filtros." />
           ) : (
-            <div className="overflow-x-auto rounded-lg border bg-card">
-              <table className="w-full min-w-[1200px] text-sm">
+            <div className="rounded-lg border bg-card">
+              <DualScroll>
+              <table className="w-max min-w-full text-sm">
                 <thead className="border-b text-left text-xs uppercase tracking-wide text-muted-foreground">
                   <tr><th className="w-10 px-3 py-3"><Checkbox aria-label="Selecionar página" checked={headState} onCheckedChange={toggleAllPage} /></th>{["Empresa", "Score", "Prior.", "Nicho", "Cidade", "WhatsApp", "Instagram", "Site", "Status", "Responsável", "Último contato", "Próx. follow-up", ""].map((h) => <th key={h} className="px-3 py-3 font-medium">{h}</th>)}</tr>
                 </thead>
@@ -302,6 +304,7 @@ export function LeadsView({ forceKanban }: { forceKanban?: boolean }) {
                   })}
                 </tbody>
               </table>
+              </DualScroll>
               {pageCount > 1 && (
                 <div className="flex items-center justify-end gap-2 border-t px-3 py-2 text-sm">
                   <span className="text-muted-foreground">Página {curPage + 1} de {pageCount}</span>
