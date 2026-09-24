@@ -106,7 +106,8 @@ function auditRow(r: AuditRow): RowOutcome {
     fix("site_rejected_context", `Site rejeitado pelo contexto do relatório: ${u}`);
   }
   if (p.website_url && p.website_status === "nao_possui") {
-    forceReview = true; w.push("Auditoria: status 'não possui site' com URL de site preenchida");
+    // URL present with no negative context: keep it (never invent), flag the divergence
+    w.push("Auditoria: relatório classifica como 'não possui site', mas informa URL própria");
   }
 
   // 7 — scheduling never taken from a negated mention
