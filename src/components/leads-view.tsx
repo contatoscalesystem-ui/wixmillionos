@@ -2,7 +2,7 @@ import { Link, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Pin, PinOff } from "lucide-react";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { DualScroll } from "@/components/dual-scroll";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
@@ -54,7 +54,6 @@ export function LeadsView({ forceKanban }: { forceKanban?: boolean }) {
   const pinned = pref.data ?? null;
   const [pipeGarimpo, setPipeGarimpo] = useState<string | null>(null);
   const initRef = useRef(false);
-  const prefReady = !forceKanban || pref.isFetched || (!!uid && !wsId && false);
   const serverGarimpo = forceKanban && pipeGarimpo && pipeGarimpo !== ALL ? pipeGarimpo : null;
   const byGarimpo = useQuery({
     enabled: !!serverGarimpo,
@@ -66,7 +65,7 @@ export function LeadsView({ forceKanban }: { forceKanban?: boolean }) {
   const isAdmin = role === "admin";
   const src = serverGarimpo ? byGarimpo : arch === "arquivados" && !forceKanban ? archived : active;
   const leads = src.data;
-  const isLoading = src.isLoading || (!!forceKanban && (!!uid && !!wsId ? !prefReady : false));
+  const isLoading = src.isLoading;
   const { data: garimpos } = useGarimpos();
   const { data: profiles } = useProfiles();
   const invalidate = useInvalidate();
@@ -293,14 +292,14 @@ export function LeadsView({ forceKanban }: { forceKanban?: boolean }) {
               {forceKanban && (() => {
                 const isPinnedSel = !!pinned && (fl.garimpo === pinned || fl.garimpo === ALL);
                 return (
-                  <Tooltip>
+                  <TooltipProvider><Tooltip>
                     <TooltipTrigger asChild>
                       <Button type="button" variant="outline" className={cn("h-9 bg-card", isPinnedSel && "border-gold text-gold")} onClick={togglePin}>
                         {isPinnedSel ? <><PinOff className="mr-1 h-4 w-4" />Desafixar</> : <><Pin className="mr-1 h-4 w-4" />Fixar</>}
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>{isPinnedSel ? "Garimpo fixado: carregado automaticamente no Pipeline. Clique para desafixar." : "Este garimpo será carregado automaticamente no Pipeline."}</TooltipContent>
-                  </Tooltip>
+                  </Tooltip></TooltipProvider>
                 );
               })()}
             </div>
