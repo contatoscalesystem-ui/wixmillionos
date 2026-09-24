@@ -64,7 +64,7 @@ export async function createStagedBatch(opts: {
         import_batch_id: batch.id, row_number: r.row_number, raw_data: r.raw as unknown as Json,
         parsed_data: r.parsed as unknown as Json, warnings: v.warnings as unknown as Json,
         duplicate_matches: dm as unknown as Json, status: isDup ? "duplicate" : v.status,
-        selected_for_import: v.status !== "invalid" && !isDup, duplicate_action: isDup ? "skip" : null,
+        selected_for_import: v.status === "valid" && !isDup, duplicate_action: isDup ? "skip" : null,
       };
     });
     for (let i = 0; i < payload.length; i += 200) {
@@ -141,12 +141,12 @@ export async function reprocessBatch(batchId: string, defaults: { city?: string 
     const headers = Object.keys(r.raw_data);
     const [pr] = parseTableRows({ headers, rows: [headers.map((h) => r.raw_data[h] ?? "")] }, defaults);
     if (!pr) continue;
-    pr.parsed.company_name ??= r.parsed_data.company_name; // keep manual name edits
+    // full re-read from raw_data: no previously interpreted values are reused
     const v = validate(pr.parsed, pr.warnings);
     const isDup = r.status === "duplicate" && v.status !== "invalid";
     const next: StagedRow = {
       ...r, parsed_data: pr.parsed, warnings: v.warnings, status: isDup ? "duplicate" : v.status,
-      selected_for_import: isDup ? r.selected_for_import : v.status !== "invalid" && r.selected_for_import !== false,
+      selected_for_import: isDup ? r.duplicate_action === "import_anyway" : v.status === "valid",
     };
     if (JSON.stringify([next.parsed_data, next.warnings, next.status]) !== JSON.stringify([r.parsed_data, r.warnings, r.status])) changed++;
     await saveRow(next);
