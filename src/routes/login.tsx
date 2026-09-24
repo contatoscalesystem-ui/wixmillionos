@@ -62,7 +62,7 @@ function LoginPage() {
       <div className="flex items-center justify-center px-6 py-10 lg:py-6">
         <form onSubmit={submit} className="w-[min(400px,100%)]">
           <div className="flex flex-col items-center">
-            <img src={symbolAsset.url} alt="" className="h-auto w-[110px] mix-blend-multiply lg:w-[min(130px,14vh)]" />
+            <img src={symbolAsset.url} alt="" style={{ width: "min(120px, 15vh)" }} className="h-auto mix-blend-multiply" />
             <div className="mt-1 whitespace-nowrap text-[22px] font-normal tracking-[0.3em] text-[#101010] lg:text-[24px]">
               MILLION <span className="text-[#C39A39]">OS</span>
             </div>
