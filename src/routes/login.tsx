@@ -52,7 +52,7 @@ function LoginPage() {
   };
 
   const inputCls =
-    "block h-[62px] [@media(min-width:1024px)_and_(max-height:820px)]:h-[52px] w-full rounded-[11px] border border-[#E0E0DC] bg-white px-4 text-[16px] text-[#171717] shadow-[0_4px_14px_rgba(0,0,0,0.05)] outline-none transition-[border-color,box-shadow] duration-200 focus:border-[#C79A32] focus:shadow-[0_4px_14px_rgba(0,0,0,0.05),0_0_0_3px_rgba(199,154,50,0.12)]";
+    "block h-[62px] login-in w-full rounded-[11px] border border-[#E0E0DC] bg-white px-4 text-[16px] text-[#171717] shadow-[0_4px_14px_rgba(0,0,0,0.05)] outline-none transition-[border-color,box-shadow] duration-200 focus:border-[#C79A32] focus:shadow-[0_4px_14px_rgba(0,0,0,0.05),0_0_0_3px_rgba(199,154,50,0.12)]";
 
   return (
     <div className="grid min-h-[100dvh] w-full bg-[#FAFAF7] lg:h-screen lg:grid-cols-2 lg:overflow-hidden">
@@ -86,11 +86,11 @@ function LoginPage() {
           <button
             type="submit"
             disabled={busy}
-            className="mt-1 flex h-[62px] [@media(min-width:1024px)_and_(max-height:820px)]:h-[54px] w-full items-center justify-center gap-2 rounded-[11px] bg-[linear-gradient(90deg,#B78A25_0%,#C99D39_45%,#E0B954_75%,#BF9028_100%)] text-[17px] font-semibold text-white shadow-[0_10px_30px_rgba(190,145,40,0.22),0_2px_8px_rgba(0,0,0,0.08)] transition-all duration-200 ease-out hover:-translate-y-px hover:brightness-[1.06] hover:shadow-[0_14px_34px_rgba(190,145,40,0.3),0_2px_8px_rgba(0,0,0,0.08)] disabled:cursor-wait disabled:hover:translate-y-0"
+            className="mt-1 flex h-[62px] login-btn w-full items-center justify-center gap-2 rounded-[11px] bg-[linear-gradient(90deg,#B78A25_0%,#C99D39_45%,#E0B954_75%,#BF9028_100%)] text-[17px] font-semibold text-white shadow-[0_10px_30px_rgba(190,145,40,0.22),0_2px_8px_rgba(0,0,0,0.08)] transition-all duration-200 ease-out hover:-translate-y-px hover:brightness-[1.06] hover:shadow-[0_14px_34px_rgba(190,145,40,0.3),0_2px_8px_rgba(0,0,0,0.08)] disabled:cursor-wait disabled:hover:translate-y-0"
           >
             {busy ? <><Loader2 className="h-4 w-4 animate-spin" /> Entrando...</> : "Entrar"}
           </button>
-          <p className="mt-8 [@media(min-width:1024px)_and_(max-height:820px)]:mt-5 text-center text-[16px] text-[#777771]">
+          <p className="mt-8 login-foot text-center text-[16px] text-[#777771]">
             Não tem conta?{" "}
             <Link to="/cadastro" className="font-medium text-[#C39A39] underline-offset-4 transition-colors hover:text-[#A8822B] hover:underline">Criar conta</Link>
           </p>
