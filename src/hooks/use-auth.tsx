@@ -53,7 +53,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setRole(r?.some((x) => x.role === "admin") ? "admin" : r?.length ? "operador" : null);
     setCheckedUid(uid);
     void supabase.rpc("touch_last_seen" as never);
-    a = null;
   };
 
   useEffect(() => {
