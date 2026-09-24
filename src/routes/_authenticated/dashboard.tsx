@@ -29,7 +29,7 @@ const STATUS_STAGE: Partial<Record<string, number>> = {
   abordagem_enviada: 1, respondeu: 2, interessado: 3, link_enviado: 4, convertido: 5,
 };
 function eventStage(type: string, metadata: unknown): number | null {
-  if (type === "approach_sent" || type === "script_sent") return 1;
+  if (type === "approach_sent") return 1;
   if (type === "link_sent") return 4;
   if (type === "converted") return 5;
   if (type === "status_changed") {
@@ -49,7 +49,7 @@ function Dashboard() {
     queryKey: ["activities", "funnel"],
     queryFn: async () => {
       const { data, error } = await supabase.from("lead_activities").select("lead_id, activity_type, metadata, created_at")
-        .in("activity_type", ["approach_sent", "script_sent", "status_changed", "link_sent", "converted"]).limit(100000);
+        .in("activity_type", ["approach_sent", "status_changed", "link_sent", "converted"]).limit(100000);
       if (error) throw error;
       return data;
     },
