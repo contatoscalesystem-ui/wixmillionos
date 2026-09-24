@@ -94,13 +94,13 @@ export function isValidUrl(u: string) {
   try { const p = new URL(u); return (p.protocol === "http:" || p.protocol === "https:") && p.hostname.includes("."); } catch { return false; }
 }
 
-const SCHEDULING_PLATFORMS: [RegExp, string][] = [
+export const SCHEDULING_PLATFORMS: [RegExp, string][] = [
   [/booksy/i, "Booksy"], [/trinks/i, "Trinks"], [/appbarber|app barber/i, "AppBarber"], [/fresha/i, "Fresha"],
   [/avec\.|\bavec\b/i, "Avec"], [/topsalao|top ?sal[aã]o/i, "TopSalão"], [/cashbarber/i, "CashBarber"], [/hubbarber/i, "HubBarber"], [/simples ?agenda/i, "Simples Agenda"], [/agendapro/i, "AgendaPro"],
   [/calendly/i, "Calendly"], [/gendo/i, "Gendo"], [/beleza ?na ?web|belezanaweb/i, "Beleza na Web"],
   [/whats\s*app|wa\.me/i, "WhatsApp"], [/instagram/i, "Instagram"],
 ];
-const isSchedulingUrl = (u: string) => SCHEDULING_PLATFORMS.slice(0, 13).some(([r]) => r.test(u)) || /topsalao|top ?sal[aã]o|cashbarber|hubbarber/i.test(u);
+export const isSchedulingUrl = (u: string) => SCHEDULING_PLATFORMS.slice(0, 13).some(([r]) => r.test(u)) || /topsalao|top ?sal[aã]o|cashbarber|hubbarber/i.test(u);
 const isSocialUrl = (u: string) => /instagram\.com|instagr\.am|facebook\.com|fb\.com|tiktok\.com|wa\.me|api\.whatsapp|linktr\.ee|linkme|lnk\.bio|msha\.ke|beacons\.ai/i.test(u);
 /** Third-party platform (scheduling, profile, directory, link-in-bio, maps) — never the company's own site. */
 export const isThirdPartyUrl = (u: string) => isSchedulingUrl(u) || isSocialUrl(u) || isMapsUrl(u) || /google\.[a-z.]+\//i.test(u);
@@ -402,7 +402,7 @@ export function normalizeInstagram(s: string): { url: string | null; invalid: bo
 // ---------------------------------------------------------------- semantic WhatsApp resolution
 const PHONE_SRC = "(?:\\+?\\s?55[\\s.-]?)?\\(?\\s?\\d{2}\\s?\\)?[\\s.-]?9?\\s?\\d{4}[\\s.-]?\\d{4}";
 const WA_WORD = "(?:whats\\s*app|whats|\\bwa\\b|\\bzap\\b)";
-const WA_NEGATION = /whats ?app (?:\w+ ){0,2}nao (?:foi )?(?:\w+ )?confirmad|nao (?:foi )?(?:\w+ )?confirmad\w* como whats ?app|sem whats ?app|nao (?:e|eh|possui|tem) whats ?app/;
+export const WA_NEGATION = /whats ?app (?:\w+ ){0,2}nao (?:foi )?(?:\w+ )?confirmad|nao (?:foi )?(?:\w+ )?confirmad\w* como whats ?app|sem whats ?app|nao (?:e|eh|possui|tem) whats ?app/;
 const waLinkDigits = (s: string) => [...s.matchAll(/(?:wa\.me\/|api\.whatsapp\.com\/send\/?\?phone=|whatsapp\.com\/send\?phone=)\+?(\d{10,13})/gi)].map((m) => m[1]!);
 /** Numbers explicitly tied to WhatsApp in a text: "WhatsApp +55…", "(75) 9…-… (WhatsApp)", wa.me links. */
 function explicitWaNumbers(s: string): string[] {
@@ -470,7 +470,7 @@ export function parseInstagramFollowers(cellText: string, hasInstagram: boolean)
 }
 
 // ---------------------------------------------------------------- contextual scheduling / site
-const CTX_NEGATIVE = /nao (?:foi )?(?:\w+ )?(?:confirmad|localizad|encontrad|atribuid)|nao pertence|indisponivel|inacessivel|homonim|outra cidade|outra unidade|nao resolveu/;
+export const CTX_NEGATIVE = /nao (?:foi )?(?:\w+ )?(?:confirmad|localizad|encontrad|atribuid)|nao pertence|indisponivel|inacessivel|homonim|outra cidade|outra unidade|nao resolveu/;
 const SITE_NEGATIVE = CTX_NEGATIVE;
 /** Earliest platform mentioned in a clause that doesn't negate it. A negated mention never becomes scheduling_type. */
 export function resolveScheduling(sCell: string, company: string | null): { type: string | null; url: string | null; rejected: string[] } {

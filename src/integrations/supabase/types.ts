@@ -289,6 +289,7 @@ export type Database = {
           duplicate_matches: Json
           id: string
           import_batch_id: string
+          parse_confidence: number | null
           parsed_data: Json
           raw_data: Json
           row_number: number
@@ -304,6 +305,7 @@ export type Database = {
           duplicate_matches?: Json
           id?: string
           import_batch_id: string
+          parse_confidence?: number | null
           parsed_data?: Json
           raw_data?: Json
           row_number: number
@@ -319,6 +321,7 @@ export type Database = {
           duplicate_matches?: Json
           id?: string
           import_batch_id?: string
+          parse_confidence?: number | null
           parsed_data?: Json
           raw_data?: Json
           row_number?: number
@@ -347,6 +350,7 @@ export type Database = {
       }
       import_batches: {
         Row: {
+          audit: Json | null
           completed_at: string | null
           created_at: string
           created_by: string | null
@@ -364,6 +368,7 @@ export type Database = {
           workspace_id: string
         }
         Insert: {
+          audit?: Json | null
           completed_at?: string | null
           created_at?: string
           created_by?: string | null
@@ -381,6 +386,7 @@ export type Database = {
           workspace_id?: string
         }
         Update: {
+          audit?: Json | null
           completed_at?: string | null
           created_at?: string
           created_by?: string | null
