@@ -18,12 +18,24 @@ export type Database = {
         Row: {
           approved_at: string | null
           approved_by: string | null
+          banned_at: string | null
+          banned_by: string | null
+          banned_note: string | null
+          banned_reason: string | null
+          blocked_at: string | null
+          blocked_by: string | null
+          blocked_reason: string | null
+          blocked_until: string | null
           city: string | null
           company: string | null
           created_at: string
+          deleted_at: string | null
+          deleted_by: string | null
           email: string | null
           full_name: string | null
           last_seen_at: string | null
+          must_change_password: boolean
+          password_changed_at: string | null
           phone: string | null
           state: string | null
           status: Database["public"]["Enums"]["account_status"]
@@ -35,12 +47,24 @@ export type Database = {
         Insert: {
           approved_at?: string | null
           approved_by?: string | null
+          banned_at?: string | null
+          banned_by?: string | null
+          banned_note?: string | null
+          banned_reason?: string | null
+          blocked_at?: string | null
+          blocked_by?: string | null
+          blocked_reason?: string | null
+          blocked_until?: string | null
           city?: string | null
           company?: string | null
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           email?: string | null
           full_name?: string | null
           last_seen_at?: string | null
+          must_change_password?: boolean
+          password_changed_at?: string | null
           phone?: string | null
           state?: string | null
           status?: Database["public"]["Enums"]["account_status"]
@@ -52,12 +76,24 @@ export type Database = {
         Update: {
           approved_at?: string | null
           approved_by?: string | null
+          banned_at?: string | null
+          banned_by?: string | null
+          banned_note?: string | null
+          banned_reason?: string | null
+          blocked_at?: string | null
+          blocked_by?: string | null
+          blocked_reason?: string | null
+          blocked_until?: string | null
           city?: string | null
           company?: string | null
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           email?: string | null
           full_name?: string | null
           last_seen_at?: string | null
+          must_change_password?: boolean
+          password_changed_at?: string | null
           phone?: string | null
           state?: string | null
           status?: Database["public"]["Enums"]["account_status"]
@@ -1371,7 +1407,14 @@ export type Database = {
       touch_last_seen: { Args: never; Returns: undefined }
     }
     Enums: {
-      account_status: "pending" | "approved" | "blocked" | "rejected"
+      account_status:
+        | "pending"
+        | "approved"
+        | "blocked"
+        | "rejected"
+        | "temp_blocked"
+        | "banned"
+        | "deleted"
       app_role: "admin" | "operador"
       financial_status:
         | "pendente"
@@ -1547,7 +1590,15 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      account_status: ["pending", "approved", "blocked", "rejected"],
+      account_status: [
+        "pending",
+        "approved",
+        "blocked",
+        "rejected",
+        "temp_blocked",
+        "banned",
+        "deleted",
+      ],
       app_role: ["admin", "operador"],
       financial_status: [
         "pendente",
