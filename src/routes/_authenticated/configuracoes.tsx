@@ -91,8 +91,6 @@ function Profile() {
 
 function Templates() {
   const { data } = useTemplates();
-  const { role } = useAuth();
-  const isAdmin = role === "admin";
   const invalidate = useInvalidate();
   const [edit, setEdit] = useState<{ id?: string; name: string; stage: string; content: string; is_active: boolean } | null>(null);
   const save = async () => {
@@ -103,9 +101,17 @@ function Templates() {
     toast.success("Template salvo.");
     setEdit(null); invalidate("message_templates");
   };
+  const remove = async (id: string, name: string) => {
+    if ((data ?? []).length <= 1) return toast.error("Mantenha pelo menos um template. Crie outro antes de excluir este.");
+    if (!window.confirm(`Excluir o template "${name}"?`)) return;
+    const { error } = await supabase.from("message_templates").delete().eq("id", id);
+    if (error) return toast.error(friendlyError(error));
+    toast.success("Template excluído.");
+    invalidate("message_templates");
+  };
   return (
     <Box>
-      <p className="mb-3 text-sm text-muted-foreground">Variáveis disponíveis: [NOME_DA_EMPRESA], [NICHO], [CIDADE].{!isAdmin && " Somente administradores editam templates."}</p>
+      <p className="mb-3 text-sm text-muted-foreground">Variáveis disponíveis: [NOME_DA_EMPRESA], [NICHO], [CIDADE]. As alterações valem só para o seu ambiente.</p>
       {edit ? (
         <div className="space-y-3">
           <div className="grid gap-3 sm:grid-cols-2">
@@ -122,11 +128,14 @@ function Templates() {
             {(data ?? []).map((t) => (
               <li key={t.id} className="flex items-center justify-between py-3 text-sm">
                 <div><div className="font-medium">{t.name}</div><div className="text-xs text-muted-foreground">{t.stage ?? "—"} · {t.is_active ? "Ativo" : "Inativo"}</div></div>
-                {isAdmin && <Button size="sm" variant="outline" onClick={() => setEdit({ id: t.id, name: t.name, stage: t.stage ?? "", content: t.content, is_active: t.is_active })}>Editar</Button>}
+                <div className="flex gap-2">
+                  <Button size="sm" variant="outline" onClick={() => setEdit({ id: t.id, name: t.name, stage: t.stage ?? "", content: t.content, is_active: t.is_active })}>Editar</Button>
+                  <Button size="sm" variant="outline" onClick={() => remove(t.id, t.name)}>Excluir</Button>
+                </div>
               </li>
             ))}
           </ul>
-          {isAdmin && <Button className="mt-3" variant="outline" onClick={() => setEdit({ name: "", stage: "", content: "", is_active: true })}>Novo template</Button>}
+          <Button className="mt-3" variant="outline" onClick={() => setEdit({ name: "", stage: "", content: "", is_active: true })}>Novo template</Button>
         </>
       )}
     </Box>

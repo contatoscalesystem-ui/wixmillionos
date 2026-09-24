@@ -162,7 +162,7 @@ function LeadPage() {
             </Select>
             <Button variant="outline" size="sm" onClick={() => setEdit(true)}><Pencil className="mr-1 h-4 w-4" />Editar</Button>
             <Button variant="outline" size="sm" onClick={() => setArchOpen(true)}>{lead.archived_at ? <><ArchiveRestore className="mr-1 h-4 w-4" />Restaurar</> : <><Archive className="mr-1 h-4 w-4" />Arquivar</>}</Button>
-            {role === "admin" && <Button variant="outline" size="sm" aria-label="Excluir definitivamente" title="Excluir definitivamente" onClick={() => setDel(true)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
+            {<Button variant="outline" size="sm" aria-label="Excluir definitivamente" title="Excluir definitivamente" onClick={() => setDel(true)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
           </div>
         </div>
         <div className="mt-4 flex flex-wrap gap-2">
