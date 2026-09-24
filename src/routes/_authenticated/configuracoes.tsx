@@ -101,6 +101,16 @@ function Templates() {
     toast.success("Template salvo.");
     setEdit(null); invalidate("message_templates");
   };
+  const setDefault = async (id: string) => {
+    const t = (data ?? []).find((x) => x.id === id);
+    if (!t) return;
+    const clear = await supabase.from("message_templates").update({ is_default: false } as never).eq("workspace_id", t.workspace_id).eq("is_default", true);
+    if (clear.error) return toast.error(friendlyError(clear.error));
+    const { error } = await supabase.from("message_templates").update({ is_default: true } as never).eq("id", id);
+    if (error) return toast.error(friendlyError(error));
+    toast.success(`"${t.name}" agora é a abordagem padrão.`);
+    invalidate("message_templates");
+  };
   const remove = async (id: string, name: string) => {
     if ((data ?? []).length <= 1) return toast.error("Mantenha pelo menos um template. Crie outro antes de excluir este.");
     if (!window.confirm(`Excluir o template "${name}"?`)) return;
@@ -127,8 +137,9 @@ function Templates() {
           <ul className="divide-y">
             {(data ?? []).map((t) => (
               <li key={t.id} className="flex items-center justify-between py-3 text-sm">
-                <div><div className="font-medium">{t.name}</div><div className="text-xs text-muted-foreground">{t.stage ?? "—"} · {t.is_active ? "Ativo" : "Inativo"}</div></div>
+                <div><div className="font-medium">{t.name}{(t as { is_default?: boolean }).is_default && <span className="ml-2 rounded-full border border-primary px-2 py-0.5 text-[11px] text-primary">Padrão</span>}</div><div className="text-xs text-muted-foreground">{t.stage ?? "—"} · {t.is_active ? "Ativo" : "Inativo"}</div></div>
                 <div className="flex gap-2">
+                  {!(t as { is_default?: boolean }).is_default && t.is_active && <Button size="sm" variant="outline" onClick={() => setDefault(t.id)}>Definir como padrão</Button>}
                   <Button size="sm" variant="outline" onClick={() => setEdit({ id: t.id, name: t.name, stage: t.stage ?? "", content: t.content, is_active: t.is_active })}>Editar</Button>
                   <Button size="sm" variant="outline" onClick={() => remove(t.id, t.name)}>Excluir</Button>
                 </div>

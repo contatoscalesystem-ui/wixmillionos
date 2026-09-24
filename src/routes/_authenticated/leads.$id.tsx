@@ -251,7 +251,9 @@ function Approach({ lead, waNum, openWa, onSent }: { lead: Lead; waNum: string |
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
 
-  useEffect(() => { if (!tplId && active[0]) setTplId(active[0].id); }, [active, tplId]);
+  useEffect(() => {
+    if (!tplId && active[0]) setTplId((active.find((t) => (t as { is_default?: boolean }).is_default) ?? active[0]).id);
+  }, [active, tplId]);
 
   const generate = async () => {
     const t = active.find((x) => x.id === tplId);
