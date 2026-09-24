@@ -11,6 +11,10 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
+import { Route as AguardandoAprovacaoRouteImport } from './routes/aguardando-aprovacao'
+import { Route as CadastroRouteImport } from './routes/cadastro'
+import { Route as CadastroRejeitadoRouteImport } from './routes/cadastro-rejeitado'
+import { Route as ContaBloqueadaRouteImport } from './routes/conta-bloqueada'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedAgendaRouteImport } from './routes/_authenticated/agenda'
 import { Route as AuthenticatedArquivosRouteImport } from './routes/_authenticated/arquivos'
@@ -36,6 +40,26 @@ const IndexRoute = IndexRouteImport.update({
 } as any)
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
   id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AguardandoAprovacaoRoute = AguardandoAprovacaoRouteImport.update({
+  id: '/aguardando-aprovacao',
+  path: '/aguardando-aprovacao',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CadastroRoute = CadastroRouteImport.update({
+  id: '/cadastro',
+  path: '/cadastro',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CadastroRejeitadoRoute = CadastroRejeitadoRouteImport.update({
+  id: '/cadastro-rejeitado',
+  path: '/cadastro-rejeitado',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContaBloqueadaRoute = ContaBloqueadaRouteImport.update({
+  id: '/conta-bloqueada',
+  path: '/conta-bloqueada',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -132,6 +156,10 @@ const AuthenticatedGarimposLotesIdRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/aguardando-aprovacao': typeof AguardandoAprovacaoRoute
+  '/cadastro': typeof CadastroRoute
+  '/cadastro-rejeitado': typeof CadastroRejeitadoRoute
+  '/conta-bloqueada': typeof ContaBloqueadaRoute
   '/login': typeof LoginRoute
   '/agenda': typeof AuthenticatedAgendaRoute
   '/arquivos': typeof AuthenticatedArquivosRoute
@@ -152,6 +180,10 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/aguardando-aprovacao': typeof AguardandoAprovacaoRoute
+  '/cadastro': typeof CadastroRoute
+  '/cadastro-rejeitado': typeof CadastroRejeitadoRoute
+  '/conta-bloqueada': typeof ContaBloqueadaRoute
   '/login': typeof LoginRoute
   '/agenda': typeof AuthenticatedAgendaRoute
   '/arquivos': typeof AuthenticatedArquivosRoute
@@ -174,6 +206,10 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/aguardando-aprovacao': typeof AguardandoAprovacaoRoute
+  '/cadastro': typeof CadastroRoute
+  '/cadastro-rejeitado': typeof CadastroRejeitadoRoute
+  '/conta-bloqueada': typeof ContaBloqueadaRoute
   '/login': typeof LoginRoute
   '/_authenticated/agenda': typeof AuthenticatedAgendaRoute
   '/_authenticated/arquivos': typeof AuthenticatedArquivosRoute
@@ -196,6 +232,10 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/aguardando-aprovacao'
+    | '/cadastro'
+    | '/cadastro-rejeitado'
+    | '/conta-bloqueada'
     | '/login'
     | '/agenda'
     | '/arquivos'
@@ -216,6 +256,10 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/aguardando-aprovacao'
+    | '/cadastro'
+    | '/cadastro-rejeitado'
+    | '/conta-bloqueada'
     | '/login'
     | '/agenda'
     | '/arquivos'
@@ -237,6 +281,10 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/aguardando-aprovacao'
+    | '/cadastro'
+    | '/cadastro-rejeitado'
+    | '/conta-bloqueada'
     | '/login'
     | '/_authenticated/agenda'
     | '/_authenticated/arquivos'
@@ -259,6 +307,10 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  AguardandoAprovacaoRoute: typeof AguardandoAprovacaoRoute
+  CadastroRoute: typeof CadastroRoute
+  CadastroRejeitadoRoute: typeof CadastroRejeitadoRoute
+  ContaBloqueadaRoute: typeof ContaBloqueadaRoute
   LoginRoute: typeof LoginRoute
 }
 
@@ -276,6 +328,34 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/aguardando-aprovacao': {
+      id: '/aguardando-aprovacao'
+      path: '/aguardando-aprovacao'
+      fullPath: '/aguardando-aprovacao'
+      preLoaderRoute: typeof AguardandoAprovacaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cadastro': {
+      id: '/cadastro'
+      path: '/cadastro'
+      fullPath: '/cadastro'
+      preLoaderRoute: typeof CadastroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cadastro-rejeitado': {
+      id: '/cadastro-rejeitado'
+      path: '/cadastro-rejeitado'
+      fullPath: '/cadastro-rejeitado'
+      preLoaderRoute: typeof CadastroRejeitadoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/conta-bloqueada': {
+      id: '/conta-bloqueada'
+      path: '/conta-bloqueada'
+      fullPath: '/conta-bloqueada'
+      preLoaderRoute: typeof ContaBloqueadaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -445,6 +525,10 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  AguardandoAprovacaoRoute: AguardandoAprovacaoRoute,
+  CadastroRoute: CadastroRoute,
+  CadastroRejeitadoRoute: CadastroRejeitadoRoute,
+  ContaBloqueadaRoute: ContaBloqueadaRoute,
   LoginRoute: LoginRoute,
 }
 export const routeTree = rootRouteImport
