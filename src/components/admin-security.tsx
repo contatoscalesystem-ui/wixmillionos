@@ -214,7 +214,6 @@ export function AccountActionDialog({ kind, target, status, onClose, onDone }: {
       </DialogContent>
     </Dialog>
   );
-  void status;
 }
 
 /** ⋮ menu in the users table. */
