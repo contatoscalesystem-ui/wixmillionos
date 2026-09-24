@@ -1,10 +1,8 @@
-# Hardening do MVP 1
-- [x] Cadastro público bloqueado após o 1º admin (gatilho no banco)
-- [x] Convites (workspace_invites) + Configurações > Equipe (/configuracoes/equipe)
-- [x] Remover acesso / tela "sem acesso" para usuários sem vínculo
-- [x] Conta de teste sem acesso
-- [x] Conversão segura via função única (cliente + status + atividade)
-- [x] Arquivar lead (archived_at, filtro Arquivados); exclusão definitiva só admin, confirmação forte
-- [x] Índices, import_batches, campos de importação em leads, função de duplicidades
-- [x] Testes admin x operador x sem vínculo (RLS) + testes pendentes de UI
-- [x] Relatório final (11 seções) — não iniciar MVP 2
+# Camada SaaS multiusuário + Super Admin
+- [x] Contas com situação (pendente/ativa/bloqueada/rejeitada), cadastro público /cadastro
+- [x] Telas /aguardando-aprovacao, /conta-bloqueada, /cadastro-rejeitado
+- [x] Aprovação cria ambiente próprio vazio (Script 01 + 8 etiquetas)
+- [x] Bloqueio imediato no banco, sem apagar dados
+- [x] /admin, /admin/usuarios, /admin/usuarios/:id, /admin/atividade, /admin/mensagens
+- [x] Eventos da plataforma, registro de acessos do Super Admin, pop-ups e boas-vindas
+- [ ] Testes 01–12 clicando nas telas com contas A e B (aguardando o usuário criar as contas de teste)
