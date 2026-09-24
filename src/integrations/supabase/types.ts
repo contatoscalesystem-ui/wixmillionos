@@ -678,6 +678,55 @@ export type Database = {
           },
         ]
       }
+      lead_script_progress: {
+        Row: {
+          completed_at: string
+          completed_by: string | null
+          id: string
+          lead_id: string
+          stage_id: string
+          workspace_id: string
+        }
+        Insert: {
+          completed_at?: string
+          completed_by?: string | null
+          id?: string
+          lead_id: string
+          stage_id: string
+          workspace_id?: string
+        }
+        Update: {
+          completed_at?: string
+          completed_by?: string | null
+          id?: string
+          lead_id?: string
+          stage_id?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_script_progress_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_script_progress_stage_id_fkey"
+            columns: ["stage_id"]
+            isOneToOne: false
+            referencedRelation: "script_stages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_script_progress_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lead_tag_links: {
         Row: {
           lead_id: string
@@ -1116,6 +1165,130 @@ export type Database = {
           },
         ]
       }
+      script_objections: {
+        Row: {
+          category: string
+          created_at: string
+          id: string
+          is_active: boolean
+          medium_answer: string | null
+          objection: string | null
+          position: number
+          short_answer: string | null
+          stop_when: string | null
+          strategic_question: string | null
+          updated_at: string
+          workspace_id: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          medium_answer?: string | null
+          objection?: string | null
+          position?: number
+          short_answer?: string | null
+          stop_when?: string | null
+          strategic_question?: string | null
+          updated_at?: string
+          workspace_id?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          medium_answer?: string | null
+          objection?: string | null
+          position?: number
+          short_answer?: string | null
+          stop_when?: string | null
+          strategic_question?: string | null
+          updated_at?: string
+          workspace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "script_objections_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      script_stages: {
+        Row: {
+          created_at: string
+          expected_response: string | null
+          id: string
+          if_no: string | null
+          if_no_reply: string | null
+          if_yes: string | null
+          is_active: boolean
+          main_message: string | null
+          materials: Json
+          name: string
+          next_step: string | null
+          objective: string | null
+          position: number
+          suggested_status: Database["public"]["Enums"]["lead_status"] | null
+          updated_at: string
+          variations: string | null
+          when_to_use: string | null
+          workspace_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          expected_response?: string | null
+          id?: string
+          if_no?: string | null
+          if_no_reply?: string | null
+          if_yes?: string | null
+          is_active?: boolean
+          main_message?: string | null
+          materials?: Json
+          name: string
+          next_step?: string | null
+          objective?: string | null
+          position?: number
+          suggested_status?: Database["public"]["Enums"]["lead_status"] | null
+          updated_at?: string
+          variations?: string | null
+          when_to_use?: string | null
+          workspace_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          expected_response?: string | null
+          id?: string
+          if_no?: string | null
+          if_no_reply?: string | null
+          if_yes?: string | null
+          is_active?: boolean
+          main_message?: string | null
+          materials?: Json
+          name?: string
+          next_step?: string | null
+          objective?: string | null
+          position?: number
+          suggested_status?: Database["public"]["Enums"]["lead_status"] | null
+          updated_at?: string
+          variations?: string | null
+          when_to_use?: string | null
+          workspace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "script_stages_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       site_projects: {
         Row: {
           client_id: string
@@ -1390,6 +1563,7 @@ export type Database = {
       }
       complete_password_change: { Args: never; Returns: undefined }
       convert_lead_to_client: { Args: { _lead_id: string }; Returns: string }
+      copy_global_script: { Args: { _replace?: boolean }; Returns: number }
       current_workspace_id: { Args: never; Returns: string }
       delete_leads_bulk: { Args: { p_ids: string[] }; Returns: Json }
       effective_account_status: {

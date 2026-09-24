@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ConfirmDialog, StrongConfirmDialog, EmptyState, Info, PriorityBadge, Score, StatusBadge } from "@/components/crm";
 import { leadDeleteBlocker } from "@/lib/deletes";
 import { LeadForm } from "@/components/lead-form";
+import { LeadScriptCard } from "@/components/lead-script-card";
 import { LEAD_STATUS, fillTemplate, fmtDate, friendlyError, normalizeBrPhone, statusLabel, waLink, websiteLabel, type Lead, type LeadStatus } from "@/lib/crm";
 import { ACTIVITY_LABEL, logActivity } from "@/lib/activity";
 import { useAuth } from "@/hooks/use-auth";
@@ -227,6 +228,7 @@ function LeadPage() {
           <Notes leadId={lead.id} />
         </div>
         <div className="space-y-5">
+          <LeadScriptCard leadId={lead.id} />
           <FollowUp lead={lead} onSaved={refresh} />
           <Tags leadId={lead.id} />
           <Timeline leadId={lead.id} />
