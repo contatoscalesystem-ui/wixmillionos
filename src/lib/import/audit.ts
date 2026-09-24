@@ -267,7 +267,7 @@ export function auditMarkdown(a: AuditReport, full?: AuditRow[]): string {
   L.push(`## Correções automáticas: ${a.corrections_count}`, "");
   const kinds = Object.entries(a.corrections).filter(([, n]) => n);
   if (!kinds.length) L.push("Nenhuma.", "");
-  else { for (const [k, n] of kinds) L.push(`- ${n} ${CORRECTION_LABEL[k as CorrectionKind].toLowerCase()}`); L.push(""); }
+  else { for (const [k, n] of kinds) L.push(`- ${n} ${CORRECTION_LABEL[k as CorrectionKind].replace(/^./, (c) => c.toLowerCase())}`); L.push(""); }
   for (const c of a.corrected_rows) L.push(`- #${c.row_number} ${c.company_name ?? ""}: ${c.changes.join("; ")}`);
   if (a.corrected_rows.length) L.push("");
   L.push(`## Warnings encontrados (${a.warnings_count})`, "");

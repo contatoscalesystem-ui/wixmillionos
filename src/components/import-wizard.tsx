@@ -714,7 +714,7 @@ function AuditCard({ audit, auditing, onRerun, onCopy }: { audit: AuditReport | 
             {!a.separated.length ? <p className="text-muted-foreground">Nenhum.</p> : <ul className="space-y-1">{a.separated.map((s) => <li key={s.row_number}><b>#{s.row_number} {s.company_name ?? "(sem nome)"}</b> — {s.reasons.join("; ") || "Dados insuficientes"}</li>)}</ul>}
           </div>
           <div><div className="font-medium">Correções automáticas</div>
-            {!kinds.length ? <p className="text-muted-foreground">Nenhuma.</p> : <ul className="list-disc pl-5">{kinds.map(([k, n]) => <li key={k}>{n} {CORRECTION_LABEL[k].toLowerCase()}</li>)}</ul>}
+            {!kinds.length ? <p className="text-muted-foreground">Nenhuma.</p> : <ul className="list-disc pl-5">{kinds.map(([k, n]) => <li key={k}>{n} {CORRECTION_LABEL[k].replace(/^./, (c) => c.toLowerCase())}</li>)}</ul>}
           </div>
           <Button size="sm" variant="outline" onClick={() => onCopy(true)}><Copy className="mr-1 h-4 w-4" />Copiar com detalhes completos</Button>
         </div>
