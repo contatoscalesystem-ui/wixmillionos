@@ -48,6 +48,7 @@ export type AuditReport = {
 
 const OTHER_DIRECTORY = /wanderboat|cybo|cylex|apontador|guia ?mais|tripadvisor|facebook|foursquare|yelp|telelistas|solutudo|diretorio/i;
 const SITE_EXTRA_NEG = /expirad|terceir|nao e (?:o )?site|nao oficial|fora do ar/;
+export const EXPIRED_SITE_WARNING_REF = "Domínio próprio localizado, porém expirado/inativo.";
 const REVIEW_REASON = "Auditoria: dado conflitante separado para revisão";
 const isValidationWarning = (w: string) =>
   ["Score ausente", "Prioridade ausente", "Instagram ausente", "Google Maps ausente", "WhatsApp não confirmado"].includes(w);
