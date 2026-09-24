@@ -45,6 +45,9 @@ function MessagesPage() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (target === "specific_user" && !userId) { toast.error("Escolha o usuário."); return; }
+    if (expires && new Date(expires).getTime() <= Date.now() + 5 * 60_000) {
+      toast.error("A data de expiração já passou ou está muito próxima. Escolha um horário futuro ou deixe em branco."); return;
+    }
     setBusy(true);
     const { error } = await supabase.from("admin_notifications" as never).insert({
       title: title.trim(), message: message.trim(), type, target_type: target, show_once: true,
