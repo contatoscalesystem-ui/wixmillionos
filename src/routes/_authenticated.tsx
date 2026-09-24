@@ -41,10 +41,11 @@ function AppLayout() {
   useEffect(() => { if (checked) void refreshProfile(); }, [pathname]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
     if (checked && account && account.status !== "approved") navigate({ to: statusPath(account.status) });
+    if (checked && account?.status === "approved" && account.must_change_password) navigate({ to: "/alterar-senha-obrigatoria" });
     if (checked && !account) navigate({ to: "/aguardando-aprovacao" });
   }, [checked, account, navigate]);
 
-  if (loading || !session || !checked || account?.status !== "approved") {
+  if (loading || !session || !checked || account?.status !== "approved" || account.must_change_password) {
     return (
       <div className="flex min-h-screen">
         <div className="hidden w-64 bg-sidebar lg:block" />

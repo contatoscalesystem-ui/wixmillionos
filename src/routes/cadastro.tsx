@@ -30,7 +30,7 @@ function SignupPage() {
   const [sent, setSent] = useState(false);
 
   useEffect(() => {
-    if (!loading && session && checked) navigate({ to: statusPath(account?.status) });
+    if (!loading && session && checked) navigate({ to: statusPath(account?.status, account?.must_change_password) });
   }, [loading, session, checked, account, navigate]);
 
   const submit = async (e: React.FormEvent) => {

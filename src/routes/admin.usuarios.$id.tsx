@@ -3,21 +3,25 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { PageHeader, StatCard } from "@/components/crm";
 import { AccountActions, AccountBadge } from "@/components/admin-ui";
+import { SecurityPanel } from "@/components/admin-security";
 import { Skeleton } from "@/components/ui/skeleton";
 import { d, dt, eventSentence, money, pct, rpc, type AdminUser } from "@/lib/admin";
 import { statusLabel } from "@/lib/crm";
 
-export const Route = createFileRoute("/admin/usuarios/$id")({ component: UserDetail });
+export const Route = createFileRoute("/admin/usuarios/$id")({
+  validateSearch: (s: Record<string, unknown>): { tab?: string } => (typeof s.tab === "string" ? { tab: s.tab } : {}),
+  component: UserDetail,
+});
 
 const TABS = [
   ["overview", "Visão geral"], ["garimpos", "Garimpos"], ["leads", "Leads"], ["pipeline", "Pipeline"], ["clientes", "Clientes"],
   ["producao", "Produção"], ["recuperacao", "Recuperação"], ["agenda", "Agenda"], ["financeiro", "Financeiro"],
-  ["atividades", "Atividades"], ["auditoria", "Auditoria"],
+  ["atividades", "Atividades"], ["auditoria", "Auditoria"], ["seguranca", "Segurança e acesso"],
 ] as const;
 type Section = (typeof TABS)[number][0];
 type Row = Record<string, unknown>;
 
-const COLS: Record<Exclude<Section, "overview" | "pipeline">, [string, string][]> = {
+const COLS: Record<Exclude<Section, "overview" | "pipeline" | "seguranca">, [string, string][]> = {
   garimpos: [["name", "Nome"], ["niche", "Nicho"], ["city", "Cidade"], ["total_leads", "Leads"], ["status", "Status"], ["created_at", "Criado"]],
   leads: [["company_name", "Empresa"], ["niche", "Nicho"], ["city", "Cidade"], ["status", "Status"], ["priority", "Prioridade"], ["score", "Score"], ["archived_at", "Arquivado"], ["created_at", "Criado"]],
   recuperacao: [["company_name", "Empresa"], ["city", "Cidade"], ["status", "Status"], ["last_contact_at", "Último contato"]],
@@ -41,10 +45,12 @@ const fmt = (k: string, v: unknown) => {
 function UserDetail() {
   const { id } = Route.useParams();
   const qc = useQueryClient();
-  const [tab, setTab] = useState<Section>("overview");
+  const search = Route.useSearch();
+  const [tab, setTab] = useState<Section>(search.tab === "seguranca" ? "seguranca" : "overview");
   const users = useQuery({ queryKey: ["admin", "users"], queryFn: () => rpc<AdminUser[]>("admin_list_users") });
   const u = users.data?.find((x) => x.user_id === id);
   const data = useQuery({
+    enabled: tab !== "seguranca",
     queryKey: ["admin", "user", id, tab],
     queryFn: () => rpc<unknown>("admin_user_data", { _user_id: id, _section: tab === "pipeline" ? "pipeline" : tab }),
     staleTime: 60_000,
@@ -56,7 +62,7 @@ function UserDetail() {
   return (
     <div className="space-y-6">
       <PageHeader title={u.full_name || u.email || "Usuário"} subtitle={u.email ?? undefined}
-        actions={<AccountActions userId={u.user_id} status={u.status} isSuperAdmin={u.is_super_admin} onDone={() => qc.invalidateQueries({ queryKey: ["admin"] })} />} />
+        actions={<AccountActions userId={u.user_id} status={u.status} isSuperAdmin={u.is_super_admin} email={u.email} name={u.full_name} onDone={() => qc.invalidateQueries({ queryKey: ["admin"] })} />} />
       <div className="flex flex-wrap gap-4 text-sm">
         <AccountBadge s={u.status} />
         <span>Criado em {dt(u.created_at)}</span>
@@ -68,7 +74,7 @@ function UserDetail() {
           <button key={v} onClick={() => setTab(v)} className={`-mb-px border-b-2 px-3 py-2 text-sm ${tab === v ? "border-gold font-semibold" : "border-transparent text-muted-foreground"}`}>{l}</button>
         ))}
       </div>
-      {data.isLoading ? <Skeleton className="h-40 w-full" /> : data.isError ? <p className="text-sm text-destructive">Não foi possível carregar os dados.</p>
+      {tab === "seguranca" ? <SecurityPanel userId={id} /> : data.isLoading ? <Skeleton className="h-40 w-full" /> : data.isError ? <p className="text-sm text-destructive">Não foi possível carregar os dados.</p>
         : tab === "overview" ? <Overview u={u} data={data.data as Record<string, Row[]>} />
         : tab === "pipeline" ? <Pipeline rows={data.data as Row[]} />
         : <DataTable cols={COLS[tab]} rows={data.data as Row[]} />}
