@@ -23,12 +23,13 @@ export const LEAD_STATUS: { value: LeadStatus; label: string }[] = [
   { value: "link_enviado", label: "Link enviado" },
   { value: "convertido", label: "Convertido" },
   { value: "recuperacao", label: "Recuperação" },
+  { value: "nao_tem_interesse", label: "Não tem interesse" },
   { value: "perdido", label: "Perdido" },
   { value: "nao_qualificado", label: "Não qualificado" },
 ];
 export const KANBAN_STATUSES: LeadStatus[] = [
   "novo", "pronto_contato", "abordagem_enviada", "respondeu", "interessado",
-  "valor_apresentado", "oferta_apresentada", "link_enviado", "convertido", "recuperacao",
+  "valor_apresentado", "oferta_apresentada", "link_enviado", "convertido", "recuperacao", "nao_tem_interesse",
 ];
 export const statusLabel = (s?: string | null) => LEAD_STATUS.find((x) => x.value === s)?.label ?? "—";
 

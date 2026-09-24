@@ -78,7 +78,7 @@ export function Kanban({ leads, statusFilter }: { leads: Lead[]; statusFilter?: 
       qc.setQueryData(["leads"], prev);
       return toast.error(friendlyError(error));
     }
-    await logActivity(lead.id, "status_changed", `Status alterado de ${statusLabel(lead.status)} para ${statusLabel(to)}`, { from: lead.status, to, via: "kanban" });
+    await logActivity(lead.id, "status_changed", to === "nao_tem_interesse" ? "Lead marcado como Não tem interesse." : `Status alterado de ${statusLabel(lead.status)} para ${statusLabel(to)}`, { from: lead.status, to, via: "kanban" });
     toast.success(`Movido para ${statusLabel(to)}.`);
     qc.invalidateQueries({ queryKey: ["activities"] });
   };

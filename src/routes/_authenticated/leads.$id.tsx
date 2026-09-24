@@ -91,7 +91,7 @@ function LeadPage() {
     if (to === lead.status) return;
     if (to === "convertido") { setConvertOpen(true); return; }
     if (!(await updateLead({ status: to }))) return;
-    await logActivity(lead.id, to === "link_enviado" ? "link_sent" : "status_changed", `Status alterado de ${statusLabel(lead.status)} para ${statusLabel(to)}`, { from: lead.status, to });
+    await logActivity(lead.id, to === "link_enviado" ? "link_sent" : "status_changed", to === "nao_tem_interesse" ? "Lead marcado como Não tem interesse." : `Status alterado de ${statusLabel(lead.status)} para ${statusLabel(to)}`, { from: lead.status, to });
     toast.success("Status atualizado.");
     refresh();
   };
@@ -228,7 +228,7 @@ function LeadPage() {
           <Notes leadId={lead.id} />
         </div>
         <div className="space-y-5">
-          <LeadScriptCard leadId={lead.id} />
+          <LeadScriptCard lead={lead} />
           <FollowUp lead={lead} onSaved={refresh} />
           <Tags leadId={lead.id} />
           <Timeline leadId={lead.id} />
