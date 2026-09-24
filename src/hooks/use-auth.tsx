@@ -3,8 +3,8 @@ import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/lib/crm";
 
-export type AccountStatus = "pending" | "approved" | "blocked" | "rejected";
-type Account = { status: AccountStatus; is_super_admin: boolean; show_welcome: boolean; full_name: string | null };
+export type AccountStatus = "pending" | "approved" | "blocked" | "temp_blocked" | "banned" | "rejected" | "deleted";
+type Account = { status: AccountStatus; is_super_admin: boolean; show_welcome: boolean; full_name: string | null; must_change_password?: boolean; blocked_until?: string | null };
 
 type AuthCtx = {
   session: Session | null;
@@ -22,8 +22,13 @@ const Ctx = createContext<AuthCtx>({
   refreshProfile: async () => {}, checked: false,
 });
 
-export function statusPath(s: AccountStatus | undefined | null) {
-  return s === "pending" || !s ? "/aguardando-aprovacao" : s === "blocked" ? "/conta-bloqueada" : s === "rejected" ? "/cadastro-rejeitado" : "/dashboard";
+export function statusPath(s: AccountStatus | undefined | null, mustChange?: boolean) {
+  if (s === "pending" || !s) return "/aguardando-aprovacao";
+  if (s === "blocked" || s === "temp_blocked") return "/conta-bloqueada";
+  if (s === "banned") return "/conta-banida";
+  if (s === "deleted") return "/conta-excluida";
+  if (s === "rejected") return "/cadastro-rejeitado";
+  return mustChange ? "/alterar-senha-obrigatoria" : "/dashboard";
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {

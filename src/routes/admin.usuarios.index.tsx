@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { PageHeader } from "@/components/crm";
 import { AccountActions, AccountBadge } from "@/components/admin-ui";
+import { AccountMenu } from "@/components/admin-security";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { d, dt, money, pct, rpc, type AdminUser } from "@/lib/admin";
@@ -11,7 +12,7 @@ import type { AccountStatus } from "@/hooks/use-auth";
 export const Route = createFileRoute("/admin/usuarios/")({ component: UsersPage });
 
 const TABS: { v: AccountStatus | "all"; l: string }[] = [
-  { v: "pending", l: "Pendentes" }, { v: "approved", l: "Ativos" }, { v: "blocked", l: "Bloqueados" }, { v: "rejected", l: "Rejeitados" }, { v: "all", l: "Todos" },
+  { v: "pending", l: "Pendentes" }, { v: "approved", l: "Ativos" }, { v: "blocked", l: "Bloqueados" }, { v: "temp_blocked", l: "Bloq. temporário" }, { v: "banned", l: "Banidos" }, { v: "rejected", l: "Rejeitados" }, { v: "deleted", l: "Excluídos" }, { v: "all", l: "Todos" },
 ];
 
 type SortKey = "name" | "leads" | "abordagens" | "respostas" | "interessados" | "convertidos" | "conv" | "projetos" | "faturamento" | "comissao";
@@ -86,7 +87,8 @@ function UsersPage() {
                   <td className="px-3 py-2">
                     <div className="flex flex-wrap items-center gap-2">
                       <Link to="/admin/usuarios/$id" params={{ id: u.user_id }} className="text-sm underline">Ver conta</Link>
-                      <AccountActions userId={u.user_id} status={u.status} isSuperAdmin={u.is_super_admin} onDone={refresh} />
+                      <AccountActions userId={u.user_id} status={u.status} isSuperAdmin={u.is_super_admin} email={u.email} name={u.full_name} onDone={refresh} />
+                      <AccountMenu user={u} onDone={refresh} />
                     </div>
                   </td>
                 </tr>

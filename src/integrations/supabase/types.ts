@@ -18,12 +18,24 @@ export type Database = {
         Row: {
           approved_at: string | null
           approved_by: string | null
+          banned_at: string | null
+          banned_by: string | null
+          banned_note: string | null
+          banned_reason: string | null
+          blocked_at: string | null
+          blocked_by: string | null
+          blocked_reason: string | null
+          blocked_until: string | null
           city: string | null
           company: string | null
           created_at: string
+          deleted_at: string | null
+          deleted_by: string | null
           email: string | null
           full_name: string | null
           last_seen_at: string | null
+          must_change_password: boolean
+          password_changed_at: string | null
           phone: string | null
           state: string | null
           status: Database["public"]["Enums"]["account_status"]
@@ -35,12 +47,24 @@ export type Database = {
         Insert: {
           approved_at?: string | null
           approved_by?: string | null
+          banned_at?: string | null
+          banned_by?: string | null
+          banned_note?: string | null
+          banned_reason?: string | null
+          blocked_at?: string | null
+          blocked_by?: string | null
+          blocked_reason?: string | null
+          blocked_until?: string | null
           city?: string | null
           company?: string | null
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           email?: string | null
           full_name?: string | null
           last_seen_at?: string | null
+          must_change_password?: boolean
+          password_changed_at?: string | null
           phone?: string | null
           state?: string | null
           status?: Database["public"]["Enums"]["account_status"]
@@ -52,12 +76,24 @@ export type Database = {
         Update: {
           approved_at?: string | null
           approved_by?: string | null
+          banned_at?: string | null
+          banned_by?: string | null
+          banned_note?: string | null
+          banned_reason?: string | null
+          blocked_at?: string | null
+          blocked_by?: string | null
+          blocked_reason?: string | null
+          blocked_until?: string | null
           city?: string | null
           company?: string | null
           created_at?: string
+          deleted_at?: string | null
+          deleted_by?: string | null
           email?: string | null
           full_name?: string | null
           last_seen_at?: string | null
+          must_change_password?: boolean
+          password_changed_at?: string | null
           phone?: string | null
           state?: string | null
           status?: Database["public"]["Enums"]["account_status"]
@@ -1306,6 +1342,17 @@ export type Database = {
     Functions: {
       accept_pending_invite: { Args: never; Returns: boolean }
       ack_welcome: { Args: never; Returns: undefined }
+      admin_account_action: {
+        Args: {
+          _action: string
+          _note?: string
+          _reason?: string
+          _until?: string
+          _user_id: string
+        }
+        Returns: undefined
+      }
+      admin_account_security: { Args: { _user_id: string }; Returns: Json }
       admin_activity: { Args: { _limit?: number }; Returns: Json }
       admin_approve_user: { Args: { _user_id: string }; Returns: string }
       admin_global_stats: { Args: never; Returns: Json }
@@ -1314,6 +1361,11 @@ export type Database = {
         Args: { _action: string; _meta?: Json; _target: string; _ws: string }
         Returns: undefined
       }
+      admin_password_event: {
+        Args: { _action: string; _must_change?: boolean; _user_id: string }
+        Returns: Json
+      }
+      admin_purge_account: { Args: { _user_id: string }; Returns: string }
       admin_set_account_status: {
         Args: {
           _status: Database["public"]["Enums"]["account_status"]
@@ -1333,8 +1385,13 @@ export type Database = {
         }
         Returns: Json
       }
+      complete_password_change: { Args: never; Returns: undefined }
       convert_lead_to_client: { Args: { _lead_id: string }; Returns: string }
       current_workspace_id: { Args: never; Returns: string }
+      effective_account_status: {
+        Args: { a: Database["public"]["Tables"]["accounts"]["Row"] }
+        Returns: Database["public"]["Enums"]["account_status"]
+      }
       find_lead_duplicates: {
         Args: {
           _city?: string
@@ -1371,7 +1428,14 @@ export type Database = {
       touch_last_seen: { Args: never; Returns: undefined }
     }
     Enums: {
-      account_status: "pending" | "approved" | "blocked" | "rejected"
+      account_status:
+        | "pending"
+        | "approved"
+        | "blocked"
+        | "rejected"
+        | "temp_blocked"
+        | "banned"
+        | "deleted"
       app_role: "admin" | "operador"
       financial_status:
         | "pendente"
@@ -1547,7 +1611,15 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      account_status: ["pending", "approved", "blocked", "rejected"],
+      account_status: [
+        "pending",
+        "approved",
+        "blocked",
+        "rejected",
+        "temp_blocked",
+        "banned",
+        "deleted",
+      ],
       app_role: ["admin", "operador"],
       financial_status: [
         "pendente",

@@ -23,13 +23,17 @@ export type PlatformEvent = {
 };
 
 export const ACCOUNT_STATUS_LABEL: Record<AccountStatus, string> = {
-  pending: "Pendente", approved: "Ativo", blocked: "Bloqueado", rejected: "Rejeitado",
+  pending: "Aguardando aprovação", approved: "Ativo", blocked: "Bloqueado", temp_blocked: "Bloqueado temporariamente",
+  banned: "Banido", rejected: "Rejeitado", deleted: "Excluído",
 };
 export const ACCOUNT_STATUS_CLASS: Record<AccountStatus, string> = {
   pending: "bg-gold-soft text-gold border-gold/40",
   approved: "bg-success-soft text-success border-success/30",
   blocked: "bg-destructive/10 text-destructive border-destructive/30",
+  temp_blocked: "bg-gold-soft text-destructive border-destructive/30",
+  banned: "bg-destructive text-destructive-foreground border-destructive",
   rejected: "bg-muted text-muted-foreground border-border",
+  deleted: "bg-muted text-muted-foreground border-dashed border-muted-foreground/40 line-through",
 };
 
 export const EVENT_LABEL: Record<string, string> = {

@@ -110,7 +110,13 @@ export const friendlyError = (e: unknown) => {
   const msg = String((e as { message?: string } | null)?.message ?? "");
   if (msg.includes("LAST_ADMIN")) return "O espaço de trabalho precisa ter pelo menos um admin.";
   if (msg.includes("SIGNUP_INVITE_ONLY")) return "Novos acessos são liberados somente por convite.";
-  if (msg.includes("CANNOT_CHANGE_SUPER_ADMIN")) return "A conta do Super Admin não pode ser bloqueada nem rejeitada.";
+  if (msg.includes("CANNOT_CHANGE_SUPER_ADMIN")) return "A conta do Super Admin não pode ser bloqueada, banida nem excluída.";
+  if (msg.includes("REASON_REQUIRED")) return "Informe o motivo.";
+  if (msg.includes("INVALID_UNTIL")) return "Escolha uma data e hora no futuro.";
+  if (msg.includes("INVALID_STATUS")) return "Esta ação não está disponível para a situação atual da conta.";
+  if (msg.includes("RESET_FAILED")) return "Não foi possível enviar o link de recuperação.";
+  if (msg.includes("PASSWORD_UPDATE_FAILED")) return "Não foi possível alterar a senha. Tente uma senha mais forte.";
+  if (msg.includes("AUTH_DELETE_FAILED")) return "Os dados foram removidos, mas o acesso não pôde ser apagado. Tente de novo.";
   if (msg.includes("ACCOUNT_NOT_FOUND")) return "Conta não encontrada.";
   if (msg.includes("FORBIDDEN")) return "Você não tem permissão para esta ação.";
   if (msg.includes("LEAD_NOT_FOUND")) return "Lead não encontrado.";

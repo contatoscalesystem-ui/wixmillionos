@@ -3,14 +3,14 @@ import { useEffect, useState, type ReactNode } from "react";
 import { useAuth, statusPath, signOutWithLog, type AccountStatus } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 
-export function AccountStatusPage({ expected, title, children }: { expected: AccountStatus; title: string; children: ReactNode }) {
+export function AccountStatusPage({ expected, title, children }: { expected: AccountStatus | AccountStatus[]; title: string; children: ReactNode }) {
   const { session, loading, account, checked, refreshProfile } = useAuth();
   const navigate = useNavigate();
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
     if (!loading && !session) navigate({ to: "/login" });
-    else if (checked && account && account.status !== expected) navigate({ to: statusPath(account.status) });
+    else if (checked && account && !([] as AccountStatus[]).concat(expected).includes(account.status)) navigate({ to: statusPath(account.status, account.must_change_password) });
   }, [loading, session, checked, account, expected, navigate]);
 
   return (
