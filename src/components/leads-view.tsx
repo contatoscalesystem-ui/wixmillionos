@@ -1,5 +1,6 @@
 import { Link, useNavigate, useSearch } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { Archive, ArchiveRestore, Eye, Pencil, Plus, Trash2, Upload, MessageCircle, Search, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -89,6 +90,52 @@ export function LeadsView({ forceKanban }: { forceKanban?: boolean }) {
       }
     });
   }, [leads, applied, sort, search.import_batch]);
+
+  const PAGE = 50;
+  const [page, setPage] = useState(0);
+  const [selMode, setSelMode] = useState<"explicit" | "all_filtered">("explicit");
+  const [selIds, setSelIds] = useState<Set<string>>(new Set());
+  const [excluded, setExcluded] = useState<Set<string>>(new Set());
+  const [bulkOpen, setBulkOpen] = useState(false);
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [failures, setFailures] = useState<{ id: string; name: string | null; reason: string }[]>([]);
+  const clearSel = () => { setSelMode("explicit"); setSelIds(new Set()); setExcluded(new Set()); };
+  useEffect(() => { clearSel(); setPage(0); }, [applied, arch, search.import_batch]);
+  useEffect(() => { setPage(0); }, [sort]);
+  const pageCount = Math.max(1, Math.ceil(rows.length / PAGE));
+  const curPage = Math.min(page, pageCount - 1);
+  const pageRows = rows.slice(curPage * PAGE, curPage * PAGE + PAGE);
+  const isSel = (id: string) => (selMode === "all_filtered" ? !excluded.has(id) : selIds.has(id));
+  const selCount = selMode === "all_filtered" ? rows.filter((l) => !excluded.has(l.id)).length : rows.filter((l) => selIds.has(l.id)).length;
+  const pageSelCount = pageRows.filter((l) => isSel(l.id)).length;
+  const headState: boolean | "indeterminate" = pageRows.length && pageSelCount === pageRows.length ? true : pageSelCount ? "indeterminate" : false;
+  const toggleOne = (id: string, on: boolean) => {
+    if (selMode === "all_filtered") { const n = new Set(excluded); on ? n.delete(id) : n.add(id); setExcluded(n); }
+    else { const n = new Set(selIds); on ? n.add(id) : n.delete(id); setSelIds(n); }
+  };
+  const toggleAllPage = () => {
+    const on = headState !== true;
+    if (selMode === "all_filtered") { const n = new Set(excluded); pageRows.forEach((l) => (on ? n.delete(l.id) : n.add(l.id))); setExcluded(n); }
+    else { const n = new Set(selIds); pageRows.forEach((l) => (on ? n.add(l.id) : n.delete(l.id))); setSelIds(n); }
+  };
+  const selectAllFiltered = () => { setSelMode("all_filtered"); setExcluded(new Set()); };
+  const bulkDelete = async () => {
+    const ids = rows.filter((l) => isSel(l.id)).map((l) => l.id);
+    if (!ids.length) return;
+    setBulkBusy(true);
+    const all: { id: string; name: string | null; reason: string }[] = [];
+    let deleted = 0;
+    for (let i = 0; i < ids.length; i += 500) {
+      const { data, error } = await supabase.rpc("delete_leads_bulk" as never, { p_ids: ids.slice(i, i + 500) } as never);
+      if (error) { setBulkBusy(false); setBulkOpen(false); return toast.error(friendlyError(error)); }
+      const res = data as unknown as { deleted_count: number; failed: { id: string; name: string | null; reason: string }[] };
+      deleted += res.deleted_count; all.push(...res.failed);
+    }
+    setBulkBusy(false); setBulkOpen(false); clearSel(); setFailures(all);
+    if (all.length) toast.warning(`${deleted} ${deleted === 1 ? "lead excluído" : "leads excluídos"}. ${all.length} não ${all.length === 1 ? "pôde ser removido" : "puderam ser removidos"}.`);
+    else toast.success(`${deleted} ${deleted === 1 ? "lead excluído" : "leads excluídos"} definitivamente.`);
+    invalidate("leads", "garimpos", "activities");
+  };
 
   const archive = async () => {
     if (!del) return;
@@ -197,20 +244,40 @@ export function LeadsView({ forceKanban }: { forceKanban?: boolean }) {
               {rows.length ? `${rows.length} ${rows.length === 1 ? "lead encontrado" : "leads encontrados"}` : "0 leads encontrados — nenhum lead encontrado com esses filtros."}
             </p>
           )}
+          {failures.length > 0 && (
+            <div className="mb-3 rounded-[10px] border border-destructive/30 bg-card p-3 text-sm">
+              <div className="mb-1 flex items-center justify-between"><span className="font-semibold">{failures.length} {failures.length === 1 ? "lead não pôde" : "leads não puderam"} ser excluídos</span><Button size="sm" variant="ghost" onClick={() => setFailures([])}>Fechar</Button></div>
+              <ul className="max-h-40 space-y-0.5 overflow-y-auto text-muted-foreground">{failures.map((f) => <li key={f.id}><span className="text-foreground">{f.name ?? f.id}</span> — {f.reason}</li>)}</ul>
+            </div>
+          )}
+          {view !== "kanban" && selCount > 0 && (
+            <div className="sticky bottom-2 z-20 mb-3 flex flex-wrap items-center gap-x-3 gap-y-2 rounded-[10px] border border-black/[0.08] bg-card px-[14px] py-[10px] text-sm shadow-sm sm:static sm:shadow-none">
+              <span className="font-semibold">{selCount} {selCount === 1 ? "selecionado" : "selecionados"}</span>
+              {selMode === "explicit" && headState === true && rows.length > pageRows.length && (
+                <span className="text-muted-foreground">{pageRows.length} leads desta página selecionados. <button className="font-medium text-foreground underline" onClick={selectAllFiltered}>Selecionar todos os {rows.length} resultados</button></span>
+              )}
+              {selMode === "all_filtered" && <span className="text-muted-foreground">Todos os resultados dos filtros atuais.</span>}
+              <div className="ml-auto flex gap-2">
+                <Button size="sm" variant="outline" onClick={clearSel}>Limpar seleção</Button>
+                <Button size="sm" variant="destructive" onClick={() => setBulkOpen(true)}><Trash2 className="mr-1 h-4 w-4" /><span className="sm:hidden">Excluir</span><span className="hidden sm:inline">Excluir definitivamente</span></Button>
+              </div>
+            </div>
+          )}
           {view === "kanban" && arch === "ativos" ? <Kanban leads={rows} statusFilter={applied.fl.status !== ALL ? (applied.fl.status as Lead["status"]) : null} /> : !rows.length ? (
             <EmptyState title="Nenhum lead encontrado com esses filtros." />
           ) : (
             <div className="overflow-x-auto rounded-lg border bg-card">
               <table className="w-full min-w-[1200px] text-sm">
                 <thead className="border-b text-left text-xs uppercase tracking-wide text-muted-foreground">
-                  <tr>{["Empresa", "Score", "Prior.", "Nicho", "Cidade", "WhatsApp", "Instagram", "Site", "Status", "Responsável", "Último contato", "Próx. follow-up", ""].map((h) => <th key={h} className="px-3 py-3 font-medium">{h}</th>)}</tr>
+                  <tr><th className="w-10 px-3 py-3"><Checkbox aria-label="Selecionar página" checked={headState} onCheckedChange={toggleAllPage} /></th>{["Empresa", "Score", "Prior.", "Nicho", "Cidade", "WhatsApp", "Instagram", "Site", "Status", "Responsável", "Último contato", "Próx. follow-up", ""].map((h) => <th key={h} className="px-3 py-3 font-medium">{h}</th>)}</tr>
                 </thead>
                 <tbody>
-                  {rows.map((l) => {
+                  {pageRows.map((l) => {
                     const wa = normalizeBrPhone(l.whatsapp);
                     const overdue = l.next_followup_at && new Date(l.next_followup_at) <= new Date();
                     return (
-                      <tr key={l.id} className="border-b last:border-0 hover:bg-muted/40">
+                      <tr key={l.id} className={cn("border-b last:border-0 hover:bg-muted/40", isSel(l.id) && "bg-muted/40")}>
+                        <td className="px-3 py-2.5"><Checkbox aria-label={`Selecionar ${l.company_name}`} checked={isSel(l.id)} onCheckedChange={(v) => toggleOne(l.id, v === true)} /></td>
                         <td className="px-3 py-2.5 font-medium"><Link to="/leads/$id" params={{ id: l.id }} className="hover:text-gold">{l.company_name}</Link></td>
                         <td className="px-3 py-2.5"><Score v={l.score} /></td>
                         <td className="px-3 py-2.5"><PriorityBadge p={l.priority} /></td>
@@ -235,6 +302,13 @@ export function LeadsView({ forceKanban }: { forceKanban?: boolean }) {
                   })}
                 </tbody>
               </table>
+              {pageCount > 1 && (
+                <div className="flex items-center justify-end gap-2 border-t px-3 py-2 text-sm">
+                  <span className="text-muted-foreground">Página {curPage + 1} de {pageCount}</span>
+                  <Button size="sm" variant="outline" disabled={curPage === 0} onClick={() => setPage(curPage - 1)}>Anterior</Button>
+                  <Button size="sm" variant="outline" disabled={curPage >= pageCount - 1} onClick={() => setPage(curPage + 1)}>Próxima</Button>
+                </div>
+              )}
             </div>
           )}
         </>
@@ -243,6 +317,9 @@ export function LeadsView({ forceKanban }: { forceKanban?: boolean }) {
       <LeadForm open={form.open} lead={form.lead} defaultGarimpo={fl.garimpo !== ALL ? fl.garimpo : undefined} onOpenChange={(o) => setForm({ open: o, lead: o ? form.lead : null })} />
       <GarimpoForm open={gOpen} onOpenChange={setGOpen} />
       <ConfirmDialog open={!!del} onOpenChange={(o) => !o && setDel(null)} title={del?.archived_at ? "Restaurar lead?" : "Arquivar lead?"} text={del?.archived_at ? `"${del?.company_name}" volta para a lista de leads ativos.` : `"${del?.company_name}" sai das listas, mas timeline, notas e origem são mantidas. Pode ser encontrado em Arquivados.`} confirmLabel={del?.archived_at ? "Restaurar" : "Arquivar"} onConfirm={archive} />
+      <StrongConfirmDialog open={bulkOpen} onOpenChange={(o) => !bulkBusy && setBulkOpen(o)} title="EXCLUIR LEADS DEFINITIVAMENTE" confirmLabel={bulkBusy ? "Excluindo..." : "Excluir definitivamente"}
+        text={`Você está prestes a excluir permanentemente ${selCount} ${selCount === 1 ? "lead" : "leads"}. Leads selecionados: ${selCount}.${selMode === "all_filtered" ? " Seleção baseada nos filtros atuais." : ""}${selCount >= 50 ? ` Esta operação afetará ${selCount} leads.` : ""} Leads com cliente ou financeiro vinculado não serão excluídos.`}
+        onConfirm={bulkDelete} />
       <StrongConfirmDialog open={!!hardDel} onOpenChange={(o) => !o && setHardDel(null)} text="O lead, suas notas, etiquetas e timeline serão apagados para sempre. Cliente, projeto e financeiro vinculados não são apagados — se existirem, a exclusão é bloqueada." onConfirm={hardRemove} />
     </div>
   );
