@@ -3,10 +3,11 @@ import type { Json } from "@/integrations/supabase/types";
 import { extOf } from "./readers";
 import { parseTableRows, validate, type Parsed, type ParsedRow, type RowStatus } from "./parser";
 import type { DuplicateMatch, ExistingLead } from "./duplicates";
+import { auditBatch, type AuditReport } from "./audit";
 
 export type StagedRow = {
   id: string; row_number: number; raw_data: Record<string, string>; parsed_data: Parsed; status: RowStatus;
-  warnings: string[]; duplicate_matches: DuplicateMatch[]; selected_for_import: boolean; duplicate_action: "skip" | "import_anyway" | null;
+  warnings: string[]; duplicate_matches: DuplicateMatch[]; selected_for_import: boolean; duplicate_action: "skip" | "import_anyway" | null; parse_confidence?: number | null;
 };
 
 export type GarimpoInput = { name: string; niche: string; city: string; state: string; research_date: string; source: string };
@@ -105,6 +106,7 @@ export async function saveRow(r: StagedRow) {
   const { error } = await supabase.from("import_batch_rows").update({
     parsed_data: r.parsed_data as unknown as Json, status: r.status, warnings: r.warnings as unknown as Json,
     duplicate_matches: r.duplicate_matches as unknown as Json, selected_for_import: r.selected_for_import, duplicate_action: r.duplicate_action,
+    ...(r.parse_confidence != null ? { parse_confidence: r.parse_confidence } : {}),
   }).eq("id", r.id);
   if (error) throw error;
 }
@@ -153,4 +155,21 @@ export async function reprocessBatch(batchId: string, defaults: { city?: string 
   }
   await refreshCounts(batchId);
   return changed;
+}
+
+/** Automatic deterministic audit: fixes rows (never raw_data), stores report on the batch. */
+export async function runAudit(batchId: string): Promise<{ rows: StagedRow[]; report: AuditReport }> {
+  const { data: b, error } = await supabase.from("import_batches").select("file_name, garimpos(name)").eq("id", batchId).single();
+  if (error) throw error;
+  const rows = await loadRows(batchId);
+  const { rows: out, report } = auditBatch(rows, {
+    batch_id: batchId, file_name: b.file_name, garimpo: (b.garimpos as { name: string } | null)?.name ?? null,
+    headers: rows[0] ? Object.keys(rows[0].raw_data) : [],
+  });
+  const before = new Map(rows.map((r) => [r.id, JSON.stringify(r)]));
+  for (const r of out as StagedRow[]) if (before.get(r.id) !== JSON.stringify(r)) await saveRow(r);
+  await refreshCounts(batchId);
+  const { error: uErr } = await supabase.from("import_batches").update({ audit: report as unknown as Json }).eq("id", batchId);
+  if (uErr) throw uErr;
+  return { rows: out as StagedRow[], report };
 }
