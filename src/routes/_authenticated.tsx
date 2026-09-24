@@ -77,30 +77,30 @@ function AppLayout() {
   const sidebar = (
     <div className="wm-sidebar relative flex h-full flex-col">
       <div className="wm-gold-edge absolute inset-y-0 left-0 w-[3px]" />
-      <div className="px-7 pb-6 pt-7">
-        <img src={symbol.url} alt="" className="h-auto w-[60px]" />
-        <div className="mt-3 text-[22px] font-extrabold leading-none tracking-tight text-[#F5F5F2]">WIX MILLION <span className="text-[#C79A32]">OS</span></div>
-        <div className="mt-2 text-[10.5px] uppercase tracking-[0.22em] text-[#9A9A95]">Central de operação comercial</div>
-        <div className="mt-4 h-[2px] w-12 bg-[#C49A35]" />
+      <div className="px-7 pb-4 pt-5">
+        <img src={symbol.url} alt="" className="h-auto w-[44px]" />
+        <div className="mt-2 text-[19px] font-extrabold leading-none tracking-tight text-[#F5F5F2]">WIX MILLION <span className="text-[#C79A32]">OS</span></div>
+        <div className="mt-1.5 text-[10px] uppercase tracking-[0.2em] text-[#9A9A95]">Central de operação comercial</div>
+        <div className="mt-3 h-[2px] w-10 bg-[#C49A35]" />
       </div>
-      <nav className="wm-scroll flex-1 space-y-1 overflow-y-auto px-4 pb-4">
+      <nav className="wm-scroll flex-1 space-y-0.5 overflow-y-auto px-4 pb-3">
         {NAV.map((n) => (
-          <Link key={n.to} to={n.to} className="wm-item group relative flex h-[52px] items-center gap-4 rounded-[11px] px-5 text-[15px] text-[#D5D5D2]"
+          <Link key={n.to} to={n.to} className="wm-item group relative flex h-[40px] items-center gap-3.5 rounded-[10px] px-4 text-[14px] text-[#D5D5D2]"
             activeProps={{ className: "wm-active" }}>
-            <n.icon className="h-5 w-5 shrink-0 stroke-[1.5]" />
+            <n.icon className="h-[18px] w-[18px] shrink-0 stroke-[1.5]" />
             <span className="flex-1 truncate">{n.label}</span>
-            {"soon" in n && <span className="rounded-full bg-white/[0.08] px-2.5 py-1 text-[10px] uppercase tracking-wider text-[#AFAFAB]">Em breve</span>}
+            {"soon" in n && <span className="rounded-full bg-white/[0.08] px-2 py-0.5 text-[9.5px] uppercase tracking-wider text-[#AFAFAB]">Em breve</span>}
           </Link>
         ))}
         {isSuperAdmin && (
-          <Link to="/admin" className="wm-item mt-2 flex h-[52px] items-center gap-4 rounded-[11px] px-5 text-[15px] text-[#D8AF51]">
-            <ShieldCheck className="h-5 w-5 stroke-[1.5] text-[#C79A32]" /> Super Admin
+          <Link to="/admin" className="wm-item mt-1 flex h-[40px] items-center gap-3.5 rounded-[10px] px-4 text-[14px] text-[#D8AF51]">
+            <ShieldCheck className="h-[18px] w-[18px] stroke-[1.5] text-[#C79A32]" /> Super Admin
           </Link>
         )}
       </nav>
       <div className="mx-5 border-t border-white/[0.08]" />
-      <div className="flex items-center gap-3 px-6 py-5">
-        <div className="wm-avatar flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-sm font-semibold text-white">{initials}</div>
+      <div className="flex items-center gap-3 px-6 py-3">
+        <div className="wm-avatar flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold text-white">{initials}</div>
         <div className="min-w-0 flex-1">
           <div className="truncate text-[15px] font-medium text-[#F5F5F2]">{name}</div>
           <div className="text-xs text-[#9A9A95]">{roleLabel}</div>
