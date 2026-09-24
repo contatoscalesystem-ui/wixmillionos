@@ -52,7 +52,7 @@ function LoginPage() {
   };
 
   const inputCls =
-    "block h-[62px] login-in w-full rounded-[11px] border border-[#E0E0DC] bg-white px-4 text-[16px] text-[#171717] shadow-[0_4px_14px_rgba(0,0,0,0.05)] outline-none transition-[border-color,box-shadow] duration-200 focus:border-[#C79A32] focus:shadow-[0_4px_14px_rgba(0,0,0,0.05),0_0_0_3px_rgba(199,154,50,0.12)]";
+    "block h-12 w-full rounded-[10px] border border-[#E0E0DC] bg-white px-4 text-[15px] text-[#171717] shadow-[0_4px_14px_rgba(0,0,0,0.05)] outline-none transition-[border-color,box-shadow] duration-200 focus:border-[#C79A32] focus:shadow-[0_4px_14px_rgba(0,0,0,0.05),0_0_0_3px_rgba(199,154,50,0.12)]";
 
   return (
     <div className="grid min-h-[100dvh] w-full bg-[#FAFAF7] lg:h-screen lg:grid-cols-2 lg:overflow-hidden">
@@ -60,25 +60,25 @@ function LoginPage() {
         <img src={panelAsset.url} alt="WIX MILLION OS — Central de operação comercial" className="absolute inset-0 h-full w-full object-cover object-left" />
       </div>
       <div className="flex items-center justify-center px-6 py-10 lg:py-6">
-        <form onSubmit={submit} className="w-[min(470px,100%)]">
+        <form onSubmit={submit} className="w-[min(400px,100%)]">
           <div className="flex flex-col items-center">
-            <img src={symbolAsset.url} alt="" className="h-auto w-[170px] mix-blend-multiply sm:w-[200px] lg:w-[min(210px,17vh)]" />
-            <div className="mt-1 whitespace-nowrap text-[28px] font-normal tracking-[0.32em] text-[#101010] sm:text-[34px] lg:text-[36px]">
+            <img src={symbolAsset.url} alt="" className="h-auto w-[110px] mix-blend-multiply lg:w-[min(130px,14vh)]" />
+            <div className="mt-1 whitespace-nowrap text-[22px] font-normal tracking-[0.3em] text-[#101010] lg:text-[24px]">
               MILLION <span className="text-[#C39A39]">OS</span>
             </div>
           </div>
-          <h2 className="mt-12 text-[36px] font-bold leading-tight text-[#171717] lg:mt-[min(56px,4.5vh)] lg:text-[40px]">Entrar</h2>
-          <p className="mt-1.5 text-[18px] text-[#777771]">Acesse a central de operação.</p>
-          <div className="mt-9 lg:mt-[min(40px,4.5vh)]">
-            <label htmlFor="email" className="mb-2 block text-[16px] font-medium text-[#171717]">E-mail</label>
+          <h2 className="mt-9 text-[28px] font-bold leading-tight text-[#171717] lg:mt-[min(40px,4vh)] lg:text-[30px]">Entrar</h2>
+          <p className="mt-1 text-[15px] text-[#777771]">Acesse a central de operação.</p>
+          <div className="mt-7">
+            <label htmlFor="email" className="mb-1.5 block text-[14px] font-medium text-[#171717]">E-mail</label>
             <input id="email" type="email" autoComplete="email" value={email} onChange={(e) => { setEmail(e.target.value); setErr(null); }} required className={inputCls} />
           </div>
-          <div className="mt-7 lg:mt-[min(28px,3vh)]">
-            <label htmlFor="password" className="mb-2 block text-[16px] font-medium text-[#171717]">Senha</label>
+          <div className="mt-5">
+            <label htmlFor="password" className="mb-1.5 block text-[14px] font-medium text-[#171717]">Senha</label>
             <div className="relative">
               <input id="password" type={show ? "text" : "password"} autoComplete="current-password" minLength={6} value={password} onChange={(e) => { setPassword(e.target.value); setErr(null); }} required className={inputCls + " pr-12"} />
               <button type="button" onClick={() => setShow((v) => !v)} aria-label={show ? "Ocultar senha" : "Mostrar senha"} className="absolute right-3 top-1/2 -translate-y-1/2 rounded p-1.5 text-[#8a8a84] transition-colors hover:text-[#171717]">
-                {show ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
           </div>
@@ -86,11 +86,11 @@ function LoginPage() {
           <button
             type="submit"
             disabled={busy}
-            className="mt-1 flex h-[62px] login-btn w-full items-center justify-center gap-2 rounded-[11px] bg-[linear-gradient(90deg,#B78A25_0%,#C99D39_45%,#E0B954_75%,#BF9028_100%)] text-[17px] font-semibold text-white shadow-[0_10px_30px_rgba(190,145,40,0.22),0_2px_8px_rgba(0,0,0,0.08)] transition-all duration-200 ease-out hover:-translate-y-px hover:brightness-[1.06] hover:shadow-[0_14px_34px_rgba(190,145,40,0.3),0_2px_8px_rgba(0,0,0,0.08)] disabled:cursor-wait disabled:hover:translate-y-0"
+            className="mt-1 flex h-12 w-full items-center justify-center gap-2 rounded-[10px] bg-[linear-gradient(90deg,#B78A25_0%,#C99D39_45%,#E0B954_75%,#BF9028_100%)] text-[15px] font-semibold text-white shadow-[0_10px_30px_rgba(190,145,40,0.22),0_2px_8px_rgba(0,0,0,0.08)] transition-all duration-200 ease-out hover:-translate-y-px hover:brightness-[1.06] hover:shadow-[0_14px_34px_rgba(190,145,40,0.3),0_2px_8px_rgba(0,0,0,0.08)] disabled:cursor-wait disabled:hover:translate-y-0"
           >
             {busy ? <><Loader2 className="h-4 w-4 animate-spin" /> Entrando...</> : "Entrar"}
           </button>
-          <p className="mt-8 login-foot text-center text-[16px] text-[#777771]">
+          <p className="mt-6 text-center text-[14px] text-[#777771]">
             Não tem conta?{" "}
             <Link to="/cadastro" className="font-medium text-[#C39A39] underline-offset-4 transition-colors hover:text-[#A8822B] hover:underline">Criar conta</Link>
           </p>
