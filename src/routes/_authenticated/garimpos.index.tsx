@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ConfirmDialog, EmptyState, PageHeader } from "@/components/crm";
 import { GarimpoForm } from "@/components/garimpo-form";
+import { GarimpoVideo } from "@/components/garimpo-video";
 import { GARIMPO_STATUS, fmtDate, friendlyError, labelOf, type Garimpo } from "@/lib/crm";
 import { useGarimpos, useInvalidate } from "@/lib/queries";
 
@@ -39,14 +40,12 @@ function GarimposPage() {
 
   return (
     <div>
-      <PageHeader
-        title="Garimpos"
-        subtitle="Pesquisas que originam os leads."
-        actions={<>
-          <Button asChild variant="outline"><Link to="/garimpos/importar"><Upload className="mr-1 h-4 w-4" />Importar garimpo</Link></Button>
-          <Button className="bg-gold text-gold-foreground hover:bg-gold/90" onClick={() => setForm({ open: true, g: null })}><Plus className="mr-1 h-4 w-4" />Novo garimpo</Button>
-        </>}
-      />
+      <PageHeader title="Garimpos" subtitle="Pesquisas que originam os leads." />
+      <GarimpoVideo />
+      <div className="mb-4 flex flex-wrap justify-end gap-2">
+        <Button asChild variant="outline"><Link to="/garimpos/importar"><Upload className="mr-1 h-4 w-4" />Importar garimpo</Link></Button>
+        <Button className="bg-gold text-gold-foreground hover:bg-gold/90" onClick={() => setForm({ open: true, g: null })}><Plus className="mr-1 h-4 w-4" />Novo garimpo</Button>
+      </div>
       {isLoading ? <Skeleton className="h-48" /> : !data?.length ? (
         <EmptyState title="Nenhum garimpo cadastrado ainda." text="Cadastre o primeiro garimpo para organizar seus leads por pesquisa.">
           <Button onClick={() => setForm({ open: true, g: null })}>Novo garimpo</Button>
