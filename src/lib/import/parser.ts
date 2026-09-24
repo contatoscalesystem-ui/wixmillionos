@@ -2,7 +2,7 @@
  * WIX MILLION OS — deterministic importer (MVP 2, parser mvp2-v1).
  * No AI, no external services: tables, aliases, regex and normalization rules.
  */
-export const PARSER_VERSION = "mvp2-v1";
+export const PARSER_VERSION = "mvp2-v2";
 export const MAX_ROWS = 1000;
 
 export type RawTable = { headers: string[]; rows: string[][]; title?: string; sheet?: string };
@@ -96,12 +96,16 @@ export function isValidUrl(u: string) {
 
 const SCHEDULING_PLATFORMS: [RegExp, string][] = [
   [/booksy/i, "Booksy"], [/trinks/i, "Trinks"], [/appbarber|app barber/i, "AppBarber"], [/fresha/i, "Fresha"],
-  [/avec\.|\bavec\b/i, "Avec"], [/simples ?agenda/i, "Simples Agenda"], [/agendapro/i, "AgendaPro"],
+  [/avec\.|\bavec\b/i, "Avec"], [/topsalao|top ?sal[aã]o/i, "TopSalão"], [/cashbarber/i, "CashBarber"], [/hubbarber/i, "HubBarber"], [/simples ?agenda/i, "Simples Agenda"], [/agendapro/i, "AgendaPro"],
   [/calendly/i, "Calendly"], [/gendo/i, "Gendo"], [/beleza ?na ?web|belezanaweb/i, "Beleza na Web"],
   [/whats\s*app|wa\.me/i, "WhatsApp"], [/instagram/i, "Instagram"],
 ];
-const isSchedulingUrl = (u: string) => SCHEDULING_PLATFORMS.slice(0, 10).some(([r]) => r.test(u));
-const isSocialUrl = (u: string) => /instagram\.com|instagr\.am|facebook\.com|fb\.com|tiktok\.com|wa\.me|api\.whatsapp|linktr\.ee/i.test(u);
+const isSchedulingUrl = (u: string) => SCHEDULING_PLATFORMS.slice(0, 13).some(([r]) => r.test(u)) || /topsalao|top ?sal[aã]o|cashbarber|hubbarber/i.test(u);
+const isSocialUrl = (u: string) => /instagram\.com|instagr\.am|facebook\.com|fb\.com|tiktok\.com|wa\.me|api\.whatsapp|linktr\.ee|linkme|lnk\.bio|msha\.ke|beacons\.ai/i.test(u);
+/** Third-party platform (scheduling, profile, directory, link-in-bio, maps) — never the company's own site. */
+export const isThirdPartyUrl = (u: string) => isSchedulingUrl(u) || isSocialUrl(u) || isMapsUrl(u) || /google\.[a-z.]+\//i.test(u);
+export const SITE_PLATFORM_CONFLICT = "Status de site do relatório conflita com plataforma de terceiros";
+export const WA_AMBIGUOUS = "WhatsApp indicado, número não confirmado";
 const isMapsUrl = (u: string) => /google\.[a-z.]+\/maps|maps\.google|maps\.app\.goo\.gl|goo\.gl\/maps|g\.page|share\.google/i.test(u);
 
 // ---------------------------------------------------------------- aliases
@@ -394,6 +398,68 @@ export function normalizeInstagram(s: string): { url: string | null; invalid: bo
   return { url: null, invalid: true };
 }
 
+
+// ---------------------------------------------------------------- semantic WhatsApp resolution
+const PHONE_SRC = "(?:\\+?\\s?55[\\s.-]?)?\\(?\\s?\\d{2}\\s?\\)?[\\s.-]?9?\\s?\\d{4}[\\s.-]?\\d{4}";
+const WA_WORD = "(?:whats\\s*app|whats|\\bwa\\b|\\bzap\\b)";
+const WA_NEGATION = /whats ?app (?:\w+ ){0,2}nao (?:foi )?(?:\w+ )?confirmad|nao (?:foi )?(?:\w+ )?confirmad\w* como whats ?app|sem whats ?app|nao (?:e|eh|possui|tem) whats ?app/;
+const waLinkDigits = (s: string) => [...s.matchAll(/(?:wa\.me\/|api\.whatsapp\.com\/send\/?\?phone=|whatsapp\.com\/send\?phone=)\+?(\d{10,13})/gi)].map((m) => m[1]!);
+/** Numbers explicitly tied to WhatsApp in a text: "WhatsApp +55…", "(75) 9…-… (WhatsApp)", wa.me links. */
+function explicitWaNumbers(s: string): string[] {
+  const t = stripMd(s.replace(/\]\([^)]*\)/g, "]"));
+  const out: string[] = [...waLinkDigits(s)];
+  const after = new RegExp(`${WA_WORD}\\s*(?:confirmado|oficial|business)?\\s*[:\\-–]?\\s*(${PHONE_SRC})`, "gi");
+  const before = new RegExp(`(${PHONE_SRC})\\s*[(\\[]?\\s*(?:-\\s*)?${WA_WORD}(?!\\s*(?:\\w+\\s+){0,2}n[aã]o)`, "gi");
+  for (const m of t.matchAll(after)) out.push(m[1]!.trim());
+  for (const m of t.matchAll(before)) out.push(m[1]!.trim());
+  return out;
+}
+export function resolveWhatsapp(c: { phoneCell: string; waCell: string; schedCell: string; obsCell: string }) {
+  const warnings: string[] = [];
+  const allText = [c.phoneCell, c.waCell, c.schedCell, c.obsCell].join(" ; ");
+  const nk = normKey(stripMd(allText));
+  const phones = extractPhones(c.phoneCell);
+  const waColPhones = extractPhones(c.waCell);
+  let whatsapp: string | null = null;
+  let confirmed = false;
+  if (WA_NEGATION.test(nk)) {
+    // 1. explicit negation wins
+  } else {
+    // 2/3. explicit confirmation (phone/WA cells, then scheduling/observation)
+    const explicit = [
+      ...explicitWaNumbers(c.phoneCell), ...waColPhones, ...explicitWaNumbers(c.waCell),
+      ...explicitWaNumbers(c.schedCell), ...explicitWaNumbers(c.obsCell),
+    ];
+    const single = phones.length === 1 && /whats ?app confirmad|confirmado (?:no|como|via) whats ?app/.test(nk) ? phones[0]! : null;
+    whatsapp = explicit[0] ?? single;
+    if (whatsapp) confirmed = true;
+    else if (WA_HINT.test(allText) || /linkme|link ?me|linktr/i.test(allText) && /whats/i.test(allText)) warnings.push(WA_AMBIGUOUS); // 4. ambiguous
+  }
+  // phone: prefer a number different from the WhatsApp; never copy phone → WhatsApp
+  const waKey = normPhone(whatsapp);
+  const pool = phones.length ? phones : waColPhones;
+  const phone = pool.find((x) => normPhone(x) !== waKey) ?? pool[0] ?? whatsapp ?? null;
+  const pk = normPhone(phone);
+  const extra = [...phones, ...waColPhones].filter((x, i, a) => {
+    const k = normPhone(x); return k !== pk && k !== waKey && a.findIndex((y) => normPhone(y) === k) === i;
+  });
+  if (extra.length) warnings.push("Múltiplos telefones", "Telefone conflitante");
+  return { phone, whatsapp, confirmed, extra, warnings };
+}
+
+/** Followers only when they belong to Instagram (never Facebook/TikTok counts). */
+export function parseInstagramFollowers(cellText: string, hasInstagram: boolean): { value: number | null; warning: string | null } {
+  const t = stripMd(cellText);
+  if (!t || isEmptyValue(t)) return { value: null, warning: null };
+  const other = /facebook|\bfb\b|tiktok|youtube|linkedin|twitter|\bx\b/i;
+  const segs = t.split(/[;|]|,\s(?=\D)|\s\/\s/).map((x) => x.trim()).filter(Boolean);
+  const igSeg = segs.find((x) => /instagram|\big\b|insta/i.test(x));
+  if (igSeg) return { value: parseFollowers(igSeg.replace(/instagram|insta|\big\b/gi, "")), warning: null };
+  if (other.test(t)) return { value: null, warning: "Seguidores de outra rede (não Instagram)" };
+  if (!hasInstagram) return { value: null, warning: "Seguidores sem Instagram localizado" };
+  return { value: parseFollowers(t), warning: null };
+}
+
 // ---------------------------------------------------------------- row parsing
 export type GarimpoDefaults = { city?: string | null; state?: string | null; niche?: string | null };
 
@@ -434,31 +500,19 @@ export function parseTableRows(table: RawTable, defaults: GarimpoDefaults): Pars
     p.state = textOrNull(cell("state")) ?? defaults.state ?? null;
     p.niche = textOrNull(cell("niche")) ?? defaults.niche ?? null;
 
-    // phones / whatsapp
+    // phones / whatsapp — semantic: phone column, WhatsApp column, scheduling and observation
     const phoneCell = cell("phone"); const waCell = cell("whatsapp");
-    const phones = extractPhones(phoneCell);
-    const waPhones = extractPhones(waCell);
-    if (phones.length) p.phone = phones[0]!;
-    if (phones.length > 1) { p.extra_phones = phones.slice(1); w.push("Múltiplos telefones"); }
-    const waHintPhone = WA_HINT.test(phoneCell);
-    const waHintCol = WA_HINT.test(waCell);
-    if (waPhones.length) {
-      p.whatsapp = waPhones[0]!;
-      p.whatsapp_confirmed = waHintCol || /confirmad/i.test(waCell);
-      if (p.phone && normPhone(p.phone) !== normPhone(p.whatsapp)) w.push("Telefone conflitante");
-      if (!p.phone) p.phone = null;
-    } else if (waHintPhone && phones.length) {
-      // e.g. "(75) 99999-9999 (WhatsApp)" or wa.me link
-      const waLink = phoneCell.match(/wa\.me\/(\d{10,13})/i);
-      p.whatsapp = waLink ? waLink[1]! : phones[0]!;
-      p.whatsapp_confirmed = true;
-    }
+    const wa = resolveWhatsapp({ phoneCell, waCell, schedCell: cell("scheduling"), obsCell: cell("commercial_observation") });
+    p.phone = wa.phone; p.whatsapp = wa.whatsapp; p.whatsapp_confirmed = wa.confirmed; p.extra_phones = wa.extra;
+    w.push(...wa.warnings);
 
     // instagram
     const ig = normalizeInstagram(cell("instagram_url"));
     p.instagram_url = ig.url;
     if (ig.invalid) w.push("URL inválida");
-    p.instagram_followers = parseFollowers(cell("instagram_followers"));
+    const fol = parseInstagramFollowers(cell("instagram_followers"), !!p.instagram_url);
+    p.instagram_followers = fol.value;
+    if (fol.warning) w.push(fol.warning);
 
     // google
     const gCell = cell("google_maps_url");
@@ -482,20 +536,23 @@ export function parseTableRows(table: RawTable, defaults: GarimpoDefaults): Pars
     // website + status
     const siteCell = cell("website_url");
     const siteLinks = extractLinks(siteCell);
-    const own = siteLinks.find((l) => !isSchedulingUrl(l.url) && !isSocialUrl(l.url) && !isMapsUrl(l.url));
+    const own = siteLinks.find((l) => !isThirdPartyUrl(l.url));
     const schedFromSite = siteLinks.find((l) => isSchedulingUrl(l.url));
+    const thirdPartySite = siteLinks.find((l) => isThirdPartyUrl(l.url));
     p.website_url = own?.url ?? null;
     if (own && !isValidUrl(own.url)) { p.website_url = null; w.push("URL inválida"); }
     if (!own && /nao confirmado/.test(normKey(stripMd(siteCell)))) w.push("Site não confirmado");
     if (!siteLinks.length && textOrNull(siteCell) && /^[\w-]+(\.[\w-]+)+(\/\S*)?$/.test(stripMd(siteCell))) {
       const u = cleanUrl(stripMd(siteCell));
-      if (isValidUrl(u) && !isSchedulingUrl(u)) p.website_url = u;
+      if (isValidUrl(u) && !isThirdPartyUrl(u)) p.website_url = u;
     }
     p.website_status = parseWebsiteStatus(cell("website_status"));
     if (!p.website_status && idx("website_status") < 0) {
       const k = normKey(stripMd(siteCell));
       if (/nao possui|sem site/.test(k)) p.website_status = "nao_possui";
     }
+    const statusSaysSite = p.website_status === "site_fraco" || p.website_status === "site_razoavel" || p.website_status === "site_profissional" || (!p.website_status && /possui site/.test(normKey(stripMd(siteCell))) && !/nao possui/.test(normKey(stripMd(siteCell))));
+    if (statusSaysSite && !p.website_url && thirdPartySite) w.push(SITE_PLATFORM_CONFLICT);
     if (p.website_status === "nao_confirmado" && !w.includes("Site não confirmado")) w.push("Site não confirmado");
 
     // scheduling
@@ -526,6 +583,8 @@ const VALIDATION_WARNINGS = new Set([
   "Empresa ausente", "Dados insuficientes", "Score ausente", "Score fora do intervalo", "Prioridade ausente",
   "Instagram ausente", "Google Maps ausente", "WhatsApp não confirmado",
 ]);
+/** Semantic conflicts that must go to human review. */
+const REVIEW_WARNINGS = new Set([SITE_PLATFORM_CONFLICT]);
 
 /** Recompute validation status + validation warnings, keeping parse-time conflict warnings. */
 export function validate(p: Parsed, parseWarnings: string[]): { status: Exclude<RowStatus, "duplicate">; warnings: string[] } {
@@ -533,6 +592,7 @@ export function validate(p: Parsed, parseWarnings: string[]): { status: Exclude<
   if (!p.company_name?.trim()) return { status: "invalid", warnings: ["Empresa ausente", ...w] };
   let status: "valid" | "review" = "valid";
   const hasContact = !!(p.phone || p.whatsapp || p.instagram_url || p.google_maps_url || p.address || p.website_url);
+  if (w.some((x) => REVIEW_WARNINGS.has(x))) status = "review";
   if (!hasContact) { status = "review"; w.push("Dados insuficientes"); }
   if (p.score == null) w.push("Score ausente");
   else if (p.score < 0 || p.score > 100) { status = "review"; w.push("Score fora do intervalo"); }

@@ -20,7 +20,7 @@ import { chooseMainTable, MAX_ROWS, parseTableRows, validate, type Parsed, type 
 import { findDuplicates, summarizeParsed, type ExistingLead } from "@/lib/import/duplicates";
 import { ReadError, readFile, readText, validateFile, extOf } from "@/lib/import/readers";
 import {
-  cancelBatch, commitBatch, createStagedBatch, fetchExistingLeads, loadRows, refreshCounts, saveRow, setSelected,
+  cancelBatch, commitBatch, createStagedBatch, fetchExistingLeads, loadRows, refreshCounts, reprocessBatch, saveRow, setSelected,
   type CommitResult, type GarimpoInput, type StagedRow,
 } from "@/lib/import/service";
 
@@ -397,6 +397,11 @@ export function ImportWizard({ resumeBatch }: { resumeBatch?: string }) {
           <div className="flex flex-wrap justify-between gap-2 border-t pt-4">
             <Button variant="outline" className="text-destructive" onClick={() => setCancelOpen(true)}><X className="mr-1 h-4 w-4" />Cancelar importação</Button>
             <div className="flex gap-2">
+              {step === 4 && batchId && <Button variant="outline" disabled={busy} onClick={async () => {
+                setBusy(true);
+                try { const n = await reprocessBatch(batchId, { city: g.city || null, state: g.state || null, niche: g.niche || null }); setRows(await loadRows(batchId)); toast.success(`Leitura refeita. ${n} linha(s) atualizada(s).`); }
+                catch (e) { toast.error(friendlyError(e)); } finally { setBusy(false); }
+              }}>Reprocessar leitura</Button>}
               {step === 5 && <Button variant="ghost" onClick={() => setStep(4)}>Voltar ao preview</Button>}
               <Button className="bg-gold text-gold-foreground hover:bg-gold/90" onClick={() => setStep(step === 4 ? 5 : 6)}>{step === 4 ? "Revisar duplicidades" : "Continuar"}</Button>
             </div>
