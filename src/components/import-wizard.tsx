@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Check, ClipboardPaste, FileUp, Loader2, Pencil, Scale, X } from "lucide-react";
+import { AlertTriangle, Ban, Check, ClipboardPaste, Copy, FileUp, Loader2, Pencil, RefreshCw, Scale, ShieldCheck, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
@@ -20,9 +20,10 @@ import { chooseMainTable, MAX_ROWS, parseTableRows, validate, type Parsed, type 
 import { findDuplicates, summarizeParsed, type ExistingLead } from "@/lib/import/duplicates";
 import { ReadError, readFile, readText, validateFile, extOf } from "@/lib/import/readers";
 import {
-  cancelBatch, commitBatch, createStagedBatch, fetchExistingLeads, loadRows, refreshCounts, reprocessBatch, saveRow, setSelected,
+  cancelBatch, commitBatch, createStagedBatch, fetchExistingLeads, loadRows, refreshCounts, reprocessBatch, runAudit, saveRow, setSelected,
   type CommitResult, type GarimpoInput, type StagedRow,
 } from "@/lib/import/service";
+import { auditMarkdown, auditStatusLabel, CORRECTION_LABEL, type AuditReport, type CorrectionKind } from "@/lib/import/audit";
 
 const STEPS = ["Garimpo", "Arquivo", "Processamento", "Preview", "Duplicidades", "Confirmação", "Resultado"];
 const STATUS_CHIP: Record<string, { label: string; cls: string }> = {
@@ -72,6 +73,8 @@ export function ImportWizard({ resumeBatch }: { resumeBatch?: string }) {
   const [initial, setInitial] = useState<"novo" | "pronto_contato">("novo");
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<CommitResult | null>(null);
+  const [audit, setAudit] = useState<AuditReport | null>(null);
+  const [auditing, setAuditing] = useState(false);
   const [resuming, setResuming] = useState(!!resumeBatch);
   const fileInput = useRef<HTMLInputElement>(null);
 
@@ -90,11 +93,24 @@ export function ImportWizard({ resumeBatch }: { resumeBatch?: string }) {
         setResult({ imported: b.imported_rows, total: b.total_rows, valid: b.valid_rows, invalid: b.invalid_rows, duplicates: b.duplicate_rows, review: Math.max(0, b.total_rows - b.valid_rows - b.invalid_rows - b.duplicate_rows) });
         setStep(7);
       } else if (["preview", "ready", "failed"].includes(b.status)) {
-        setRows(await loadRows(b.id)); setStep(4);
+        setStep(4); await doAudit(b.id);
       }
       setResuming(false);
     })().catch(() => setResuming(false));
   }, [resumeBatch, batchId]);
+
+  const doAudit = async (id: string) => {
+    setAuditing(true);
+    try { const a = await runAudit(id); setRows(a.rows); setAudit(a.report); return a.report; }
+    catch (e) { toast.error(friendlyError(e)); setRows(await loadRows(id)); return null; }
+    finally { setAuditing(false); }
+  };
+  const copyAudit = async (full: boolean) => {
+    if (!audit) return;
+    await navigator.clipboard.writeText(auditMarkdown(audit, full ? rows : undefined));
+    toast.success(full ? "Auditoria com detalhes completos copiada." : "Auditoria copiada.");
+  };
+  const blocked = audit?.status === "blocked";
 
   const paint = () => new Promise((r) => requestAnimationFrame(() => setTimeout(r, 0)));
 
@@ -137,7 +153,8 @@ export function ImportWizard({ resumeBatch }: { resumeBatch?: string }) {
       setStage("Preparando preview..."); await paint();
       const { batchId: b, garimpoId: gid } = await createStagedBatch({ garimpo: g, file: mode === "file" ? file : null, rows: parsed, dups, userId });
       setBatchId(b); setGarimpoId(gid);
-      setRows(await loadRows(b));
+      setStage("Auditando lote..."); await paint();
+      await doAudit(b);
       navigate({ to: "/garimpos/importar", search: { batch: b }, replace: true });
       setPage(0); setStep(4);
     } catch (e) {
@@ -329,6 +346,7 @@ export function ImportWizard({ resumeBatch }: { resumeBatch?: string }) {
 
       {(step === 4 || step === 5) && (
         <section className="space-y-4">
+          <AuditCard audit={audit} auditing={auditing} onRerun={() => batchId && doAudit(batchId)} onCopy={copyAudit} />
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
             {([["Registros encontrados", counts.total, "all"], ["Válidos", counts.valid, "valid"], ["Revisar", counts.review, "review"], ["Possíveis duplicados", counts.duplicate, "duplicate"], ["Inválidos", counts.invalid, "invalid"], ["Selecionados para importar", counts.selected, null]] as const).map(([l, v, f]) => (
               <button key={l} disabled={!f} onClick={() => f && (setFilter(f), setStep(4))} className={cn("rounded-lg border bg-card p-3 text-left", f && filter === f && "border-gold")}>
@@ -399,11 +417,11 @@ export function ImportWizard({ resumeBatch }: { resumeBatch?: string }) {
             <div className="flex gap-2">
               {step === 4 && batchId && <Button variant="outline" disabled={busy} onClick={async () => {
                 setBusy(true);
-                try { const n = await reprocessBatch(batchId, { city: g.city || null, state: g.state || null, niche: g.niche || null }); setRows(await loadRows(batchId)); toast.success(`Leitura refeita. ${n} linha(s) atualizada(s).`); }
+                try { const n = await reprocessBatch(batchId, { city: g.city || null, state: g.state || null, niche: g.niche || null }); await doAudit(batchId); toast.success(`Leitura refeita e auditada. ${n} linha(s) atualizada(s).`); }
                 catch (e) { toast.error(friendlyError(e)); } finally { setBusy(false); }
               }}>Reprocessar leitura</Button>}
               {step === 5 && <Button variant="ghost" onClick={() => setStep(4)}>Voltar ao preview</Button>}
-              <Button className="bg-gold text-gold-foreground hover:bg-gold/90" onClick={() => setStep(step === 4 ? 5 : 6)}>{step === 4 ? "Revisar duplicidades" : "Continuar"}</Button>
+              <Button className="bg-gold text-gold-foreground hover:bg-gold/90" disabled={blocked || auditing} onClick={() => setStep(step === 4 ? 5 : 6)}>{step === 4 ? "Revisar duplicidades" : "Continuar"}</Button>
             </div>
           </div>
         </section>
@@ -440,7 +458,7 @@ export function ImportWizard({ resumeBatch }: { resumeBatch?: string }) {
             <Button variant="outline" className="text-destructive" disabled={busy} onClick={() => setCancelOpen(true)}>Cancelar importação</Button>
             <div className="flex gap-2">
               <Button variant="ghost" disabled={busy} onClick={() => setStep(5)}>Voltar</Button>
-              <Button className="bg-gold text-gold-foreground hover:bg-gold/90" disabled={busy || counts.selected === 0} onClick={confirm}>
+              <Button className="bg-gold text-gold-foreground hover:bg-gold/90" disabled={busy || blocked || counts.selected === 0} onClick={confirm}>
                 {busy && <Loader2 className="mr-1 h-4 w-4 animate-spin" />}Confirmar importação
               </Button>
             </div>
@@ -650,5 +668,57 @@ function CompareDialog({ row, onClose, onAction }: { row: StagedRow; onClose: ()
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function AuditCard({ audit, auditing, onRerun, onCopy }: { audit: AuditReport | null; auditing: boolean; onRerun: () => void; onCopy: (full: boolean) => void }) {
+  const [open, setOpen] = useState(false);
+  if (!audit) return (
+    <div className="flex items-center gap-2 rounded-lg border bg-card p-4 text-sm text-muted-foreground">
+      {auditing ? <><Loader2 className="h-4 w-4 animate-spin" />Auditando lote...</> : <>Auditoria ainda não executada. <Button size="sm" variant="outline" onClick={onRerun}>Auditar agora</Button></>}
+    </div>
+  );
+  const a = audit;
+  const Icon = a.status === "approved" ? ShieldCheck : a.status === "attention" ? AlertTriangle : Ban;
+  const kinds = Object.entries(a.corrections).filter(([, n]) => n) as [CorrectionKind, number][];
+  return (
+    <div className={cn("space-y-3 rounded-lg border bg-card p-4", a.status === "approved" && "border-foreground/30", a.status === "attention" && "border-gold", a.status === "blocked" && "border-destructive")}>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <div className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Auditoria automática</div>
+          <div className={cn("mt-1 flex items-center gap-2 text-lg font-semibold", a.status === "blocked" && "text-destructive")}>
+            <Icon className={cn("h-5 w-5", a.status === "attention" && "text-gold")} />{auditStatusLabel(a.status)}
+          </div>
+          {a.status === "blocked"
+            ? <p className="mt-1 text-sm text-destructive">Inconsistência estrutural detectada no relatório. A importação não pode ser confirmada.</p>
+            : <p className="mt-1 text-sm text-muted-foreground">
+                <b className="text-foreground tabular-nums">{a.total_rows}</b> registros analisados · <b className="text-foreground tabular-nums">{a.selected}</b> prontos para importar · <b className="text-foreground tabular-nums">{a.review + a.duplicate + a.invalid}</b> separados automaticamente · <b className="text-foreground tabular-nums">{a.critical_errors_count}</b> erros críticos
+              </p>}
+          {a.status === "attention" && <p className="mt-1 text-xs text-muted-foreground">Os registros separados já estão desmarcados. Você pode continuar com os demais sem revisar.</p>}
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <Button size="sm" variant="outline" disabled={auditing} onClick={onRerun}>{auditing ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <RefreshCw className="mr-1 h-4 w-4" />}Auditar novamente</Button>
+          <Button size="sm" variant="outline" onClick={() => onCopy(false)}><Copy className="mr-1 h-4 w-4" />Copiar auditoria</Button>
+          <Button size="sm" variant="ghost" onClick={() => setOpen(!open)}>{open ? "Ocultar detalhes" : "Detalhes"}</Button>
+        </div>
+      </div>
+      <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground tabular-nums">
+        <span>{a.corrections_count} correções automáticas</span><span>{a.warnings_count} alertas</span>
+        <span>{a.whatsapp_confirmed_count} WhatsApps confirmados</span><span>{a.phone_only_count} só telefone</span>
+        <span>{a.website_count} sites próprios</span><span>{a.scheduling_count} com agendamento</span><span>confiança média {a.avg_confidence}/100</span>
+      </div>
+      {open && (
+        <div className="space-y-3 border-t pt-3 text-sm">
+          {!!a.critical_errors.length && <div><div className="font-medium text-destructive">Erros críticos</div><ul className="list-disc pl-5">{a.critical_errors.map((e) => <li key={e}>{e}</li>)}</ul></div>}
+          <div><div className="font-medium">Separados automaticamente</div>
+            {!a.separated.length ? <p className="text-muted-foreground">Nenhum.</p> : <ul className="space-y-1">{a.separated.map((s) => <li key={s.row_number}><b>#{s.row_number} {s.company_name ?? "(sem nome)"}</b> — {s.reasons.join("; ") || "Dados insuficientes"}</li>)}</ul>}
+          </div>
+          <div><div className="font-medium">Correções automáticas</div>
+            {!kinds.length ? <p className="text-muted-foreground">Nenhuma.</p> : <ul className="list-disc pl-5">{kinds.map(([k, n]) => <li key={k}>{n} {CORRECTION_LABEL[k].toLowerCase()}</li>)}</ul>}
+          </div>
+          <Button size="sm" variant="outline" onClick={() => onCopy(true)}><Copy className="mr-1 h-4 w-4" />Copiar com detalhes completos</Button>
+        </div>
+      )}
+    </div>
   );
 }
