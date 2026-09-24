@@ -157,3 +157,9 @@
 #lovable-badge {
   display: none !important;
 }
+
+@media (min-width: 1024px) and (max-height: 820px) {
+  .login-in { height: 52px !important; }
+  .login-btn { height: 54px !important; }
+  .login-foot { margin-top: 1.25rem !important; }
+}
