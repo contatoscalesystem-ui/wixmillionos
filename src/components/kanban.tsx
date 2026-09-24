@@ -7,6 +7,7 @@ import { KANBAN_STATUSES, friendlyError, statusLabel, type Lead, type LeadStatus
 import { logActivity } from "@/lib/activity";
 import { PriorityBadge, Score } from "@/components/crm";
 import { cn } from "@/lib/utils";
+import { DualScroll } from "@/components/dual-scroll";
 
 function Card({ lead }: { lead: Lead }) {
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({ id: lead.id });
@@ -84,9 +85,17 @@ export function Kanban({ leads, statusFilter }: { leads: Lead[]; statusFilter?: 
 
   return (
     <DndContext sensors={sensors} onDragEnd={onDragEnd}>
-      <div className={cn("flex gap-3 pb-4", !statusFilter && "overflow-x-auto")}>
-        {cols.map((s) => <Column key={s} status={s} wide={!!statusFilter} emptyText={statusFilter ? "Nenhum lead encontrado." : undefined} leads={leads.filter((l) => columnOf(l.status) === s)} />)}
-      </div>
+      {statusFilter ? (
+        <div className="flex gap-3 pb-4">
+          {cols.map((s) => <Column key={s} status={s} wide emptyText="Nenhum lead encontrado." leads={leads.filter((l) => columnOf(l.status) === s)} />)}
+        </div>
+      ) : (
+        <DualScroll>
+          <div className="flex w-max gap-3 pb-4 pt-2">
+            {cols.map((s) => <Column key={s} status={s} leads={leads.filter((l) => columnOf(l.status) === s)} />)}
+          </div>
+        </DualScroll>
+      )}
     </DndContext>
   );
 }
