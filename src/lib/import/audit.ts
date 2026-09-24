@@ -189,8 +189,7 @@ export function auditBatch(input: AuditRow[], meta: { batch_id: string; file_nam
     let sel = r.selected_for_import;
     if (r.status === "review" || r.status === "invalid") sel = false;
     if (r.status === "duplicate" && r.duplicate_action !== "import_anyway") sel = false;
-    if (r.status === "valid" && o.kinds.length && !r.selected_for_import && input.find((x) => x.id === r.id)?.status !== "valid") sel = true;
-    if (sel !== r.selected_for_import && (r.status !== "valid")) bump("selection_fixed");
+    if (sel !== r.selected_for_import) bump("selection_fixed");
     const corrections = o.kinds.length;
     const next = { ...r, selected_for_import: sel };
     return { ...next, parse_confidence: confidence(next, corrections) };
