@@ -154,6 +154,13 @@
   }
 }
 
+.db-card, .db-panel { background: #FFFFFF; border: 1px solid rgba(0,0,0,0.07); border-radius: 12px; box-shadow: 0 3px 10px rgba(0,0,0,0.025); }
+.db-card { transition: transform 180ms ease, box-shadow 180ms ease; }
+.db-card:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(0,0,0,0.05); }
+.db-gold-btn { background: linear-gradient(90deg, #B88B28 0%, #C99D3C 55%, #B98B26 100%); box-shadow: 0 6px 18px rgba(190,145,40,0.18); transition: transform 180ms ease, filter 180ms ease; }
+.db-gold-btn:hover { transform: translateY(-1px); filter: brightness(1.06); }
+.db-gold-bar { background: linear-gradient(90deg, #B88B28, #D8AF51); }
+
 #lovable-badge {
   display: none !important;
 }
