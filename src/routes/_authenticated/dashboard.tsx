@@ -1,9 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import type { ReactNode } from "react";
+import {
+  Users, UserPlus, Phone, Send, Reply, Target, Link2, BarChart3, Clock, Layers, Globe,
+  Banknote, Coins, CalendarDays, FileText, Info, type LucideIcon,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
-import { PageHeader, StatCard } from "@/components/crm";
 import { fmtDate, sumByCurrency, type LeadStatus, type Tables } from "@/lib/crm";
 import { ACTIVITY_LABEL } from "@/lib/activity";
 import { profileName, useFinance, useLeads, useProfiles, useProjects } from "@/lib/queries";
@@ -58,31 +61,50 @@ function Dashboard() {
   const due = L.filter((l) => l.next_followup_at && new Date(l.next_followup_at) <= endOfToday && !["convertido", "perdido", "nao_qualificado"].includes(l.status))
     .sort((a, b) => new Date(a.next_followup_at!).getTime() - new Date(b.next_followup_at!).getTime());
 
-  return (
-    <div className="space-y-8">
-      <PageHeader title="Dashboard" subtitle="Central de operação comercial — dados em tempo real do banco."
-        actions={<Button asChild className="bg-gold text-gold-foreground hover:bg-gold/90"><Link to="/leads">Ver leads</Link></Button>} />
+  const stats: [string, ReactNode, LucideIcon, boolean?][] = [
+    ["Total de leads", L.length, Users, true],
+    ["Novos", count("novo"), UserPlus],
+    ["Prontos para contato", count("pronto_contato"), Phone],
+    ["Abordagens enviadas", count("abordagem_enviada"), Send],
+    ["Respondeu", count("respondeu"), Reply],
+    ["Interessados", count("interessado"), Target],
+    ["Links enviados", count("link_enviado"), Link2],
+    ["Convertidos", count("convertido"), BarChart3, true],
+    ["Em recuperação", count("recuperacao") + count("sem_resposta"), Clock],
+    ["Sites em produção", sitesProd, Layers],
+    ["Sites publicados", P.length - sitesProd, Globe],
+    ["Comissão prevista", sumByCurrency(F, com), Banknote, true],
+    ["Comissão recebida", sumByCurrency(F.filter((f) => f.status === "recebido"), com), Coins, true],
+  ];
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-        <StatCard label="Total de leads" value={L.length} highlight />
-        <StatCard label="Novos" value={count("novo")} />
-        <StatCard label="Prontos para contato" value={count("pronto_contato")} />
-        <StatCard label="Abordagens enviadas" value={count("abordagem_enviada")} />
-        <StatCard label="Respondeu" value={count("respondeu")} />
-        <StatCard label="Interessados" value={count("interessado")} />
-        <StatCard label="Links enviados" value={count("link_enviado")} />
-        <StatCard label="Convertidos" value={count("convertido")} highlight />
-        <StatCard label="Em recuperação" value={count("recuperacao") + count("sem_resposta")} />
-        <StatCard label="Sites em produção" value={sitesProd} />
-        <StatCard label="Sites publicados" value={P.length - sitesProd} />
-        <StatCard label="Comissão prevista" value={<span className="text-lg">{sumByCurrency(F, com)}</span>} highlight />
-        <StatCard label="Comissão recebida" value={<span className="text-lg">{sumByCurrency(F.filter((f) => f.status === "recebido"), com)}</span>} highlight />
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h1 className="text-[32px] font-extrabold leading-tight tracking-tight text-[#171717]">Dashboard</h1>
+          <p className="mt-1 text-[15px] text-[#777771]">Central de operação comercial — dados em tempo real do banco.</p>
+        </div>
+        <Link to="/leads" className="db-gold-btn inline-flex h-11 items-center gap-2 self-start rounded-[10px] px-5 text-sm font-semibold text-white">
+          <Users className="h-4 w-4" /> Ver leads
+        </Link>
+      </div>
+
+      <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-5">
+        {stats.map(([label, value, Icon, gold]) => (
+          <div key={label} className="db-card flex min-h-[86px] items-center gap-4 p-4">
+            <IconBox icon={Icon} />
+            <div className="min-w-0">
+              <div className="truncate text-[12.5px] text-[#777771]">{label}</div>
+              <div className={`mt-0.5 truncate text-[24px] font-bold leading-tight tabular-nums ${gold ? "text-[#C39A39]" : "text-[#171717]"}`}>{value}</div>
+            </div>
+          </div>
+        ))}
       </div>
 
       <div className="grid gap-5 lg:grid-cols-2">
-        <section className="rounded-lg border bg-card p-5">
-          <h2 className="mb-4 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Funil</h2>
-          <div className="space-y-2.5">
+        <section className="db-panel flex flex-col p-5">
+          <PanelTitle icon={BarChart3}>Funil</PanelTitle>
+          <div className="space-y-3">
             {FUNNEL.map((name, i) => {
               const v = reached[i] ?? 0;
               const total = reached[0] ?? 0;
@@ -91,29 +113,35 @@ function Dashboard() {
               const pctPrev = i === 0 ? null : prev ? (v / prev) * 100 : 0;
               return (
                 <div key={name}>
-                  <div className="mb-1 flex justify-between text-sm">
-                    <span className="font-medium">{name}</span>
-                    <span className="tabular-nums"><span className="font-semibold">{v}</span>
-                      <span className="ml-2 text-muted-foreground">{pctTotal.toFixed(0)}%{pctPrev != null && ` · ${pctPrev.toFixed(0)}% da etapa anterior`}</span></span>
+                  <div className="mb-1.5 flex justify-between text-sm">
+                    <span className="font-medium text-[#171717]">{name}</span>
+                    <span className="tabular-nums"><span className="font-semibold text-[#171717]">{v}</span>
+                      <span className="ml-3 text-[#777771]">{pctTotal.toFixed(0)}%{pctPrev != null && ` · ${pctPrev.toFixed(0)}% da etapa anterior`}</span></span>
                   </div>
-                  <div className="h-2 rounded-full bg-muted"><div className="h-2 rounded-full bg-gold" style={{ width: `${pctTotal}%` }} /></div>
+                  <div className="h-2 rounded-full bg-[#E9E9E5]"><div className="db-gold-bar h-2 rounded-full" style={{ width: `${pctTotal}%` }} /></div>
                 </div>
               );
             })}
           </div>
-          {!L.length && <p className="mt-4 text-sm text-muted-foreground">Sem leads ainda — o funil será calculado com dados reais.</p>}
+          {!L.length && (
+            <div className="mt-5 flex items-center gap-3 border-t border-black/[0.06] pt-4 text-[13px] text-[#777771]">
+              <Info className="h-4 w-4 text-[#C39A39]" /> Sem leads ainda — o funil será calculado com dados reais.
+            </div>
+          )}
         </section>
 
-        <section className="rounded-lg border bg-card p-5">
-          <h2 className="mb-4 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Follow-ups do dia</h2>
-          {!due.length ? <p className="text-sm text-muted-foreground">Nenhum follow-up para hoje.</p> : (
-            <ul className="divide-y">
+        <section className="db-panel flex flex-col p-5">
+          <PanelTitle icon={CalendarDays}>Follow-ups do dia</PanelTitle>
+          {!due.length ? (
+            <Empty icon={CalendarDays} title="Nenhum follow-up para hoje." sub={<>Quando houver follow-ups agendados,<br />eles aparecerão aqui.</>} big />
+          ) : (
+            <ul className="divide-y divide-black/[0.06]">
               {due.slice(0, 12).map((l) => {
                 const late = new Date(l.next_followup_at!) < new Date(new Date().setHours(0, 0, 0, 0));
                 return (
-                  <li key={l.id} className="flex items-center justify-between py-2 text-sm">
-                    <Link to="/leads/$id" params={{ id: l.id }} className="font-medium hover:text-gold">{l.company_name}</Link>
-                    <span className={late ? "font-semibold text-gold" : "text-muted-foreground"}>{late ? "Atrasado · " : ""}{fmtDate(l.next_followup_at)}</span>
+                  <li key={l.id} className="flex items-center justify-between py-2.5 text-sm">
+                    <Link to="/leads/$id" params={{ id: l.id }} className="font-medium hover:text-[#C39A39]">{l.company_name}</Link>
+                    <span className={late ? "font-semibold text-[#C39A39]" : "text-[#777771]"}>{late ? "Atrasado · " : ""}{fmtDate(l.next_followup_at)}</span>
                   </li>
                 );
               })}
@@ -122,23 +150,48 @@ function Dashboard() {
         </section>
       </div>
 
-      <section className="rounded-lg border bg-card p-5">
-        <h2 className="mb-4 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Atividade recente</h2>
-        {acts.isLoading ? <Skeleton className="h-24" /> : !acts.data?.length ? <p className="text-sm text-muted-foreground">Nenhuma atividade registrada ainda.</p> : (
-          <ul className="divide-y">
+      <section className="db-panel p-5">
+        <PanelTitle icon={FileText}>Atividade recente</PanelTitle>
+        {acts.isLoading ? <Skeleton className="h-24" /> : !acts.data?.length ? (
+          <Empty icon={FileText} title="Nenhuma atividade registrada ainda." sub="As interações com leads e atualizações aparecerão aqui." />
+        ) : (
+          <ul className="divide-y divide-black/[0.06]">
             {acts.data.map((a) => (
-              <li key={a.id} className="flex flex-col gap-0.5 py-2 text-sm sm:flex-row sm:items-center sm:justify-between">
+              <li key={a.id} className="flex flex-col gap-0.5 py-2.5 text-sm sm:flex-row sm:items-center sm:justify-between">
                 <span>
                   <span className="font-semibold">{ACTIVITY_LABEL[a.activity_type] ?? a.activity_type}</span>
-                  {a.lead_id && a.leads && <> · <Link to="/leads/$id" params={{ id: a.lead_id }} className="hover:text-gold">{a.leads.company_name}</Link></>}
-                  <span className="text-muted-foreground"> — {a.description}</span>
+                  {a.lead_id && a.leads && <> · <Link to="/leads/$id" params={{ id: a.lead_id }} className="hover:text-[#C39A39]">{a.leads.company_name}</Link></>}
+                  <span className="text-[#777771]"> — {a.description}</span>
                 </span>
-                <span className="text-xs text-muted-foreground">{profileName(profiles, a.user_id)} · {fmtDate(a.created_at, true)}</span>
+                <span className="text-xs text-[#777771]">{profileName(profiles, a.user_id)} · {fmtDate(a.created_at, true)}</span>
               </li>
             ))}
           </ul>
         )}
       </section>
+    </div>
+  );
+}
+
+function IconBox({ icon: Icon }: { icon: LucideIcon }) {
+  return <div className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-[10px] bg-[#C39A39]/[0.08]"><Icon className="h-5 w-5 stroke-[1.6] text-[#C39A39]" /></div>;
+}
+function PanelTitle({ icon, children }: { icon: LucideIcon; children: ReactNode }) {
+  return (
+    <div className="mb-5 flex items-center gap-4 border-b border-black/[0.06] pb-4">
+      <IconBox icon={icon} />
+      <h2 className="text-[13px] font-bold uppercase tracking-[0.2em] text-[#171717]">{children}</h2>
+    </div>
+  );
+}
+function Empty({ icon: Icon, title, sub, big }: { icon: LucideIcon; title: string; sub: ReactNode; big?: boolean }) {
+  return (
+    <div className={`flex flex-1 flex-col items-center justify-center text-center ${big ? "py-10" : "py-4"}`}>
+      <div className={`flex items-center justify-center rounded-full bg-[#F5F3ED] ${big ? "h-[72px] w-[72px]" : "h-12 w-12"}`}>
+        <Icon className={`${big ? "h-8 w-8" : "h-5 w-5"} stroke-[1.5] text-[#777771]`} />
+      </div>
+      <div className="mt-4 text-[15px] font-medium text-[#171717]">{title}</div>
+      <div className="mt-1.5 text-[13px] text-[#9A9A95]">{sub}</div>
     </div>
   );
 }
