@@ -28,7 +28,11 @@ export function NotificationsGate() {
     (async () => {
       try {
         const [{ data: notes }, { data: receipts }] = await Promise.all([
-          supabase.from("admin_notifications" as never).select("id,title,message,type,created_at").order("created_at"),
+          // Filter in the query (Super Admin's RLS can read all rows; they must still only receive their own).
+          supabase.from("admin_notifications" as never).select("id,title,message,type,created_at")
+            .or(`target_type.eq.all,and(target_type.eq.specific_user,target_user_id.eq.${uid})`)
+            .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
+            .order("created_at"),
           supabase.from("notification_receipts" as never).select("notification_id,acknowledged_at").eq("user_id", uid),
         ]);
         const done = new Set(((receipts ?? []) as { notification_id: string; acknowledged_at: string | null }[])
