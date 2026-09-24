@@ -99,4 +99,13 @@ describe("parser", () => {
     expect(validate(rows[0]!.parsed, rows[0]!.warnings).status).toBe("review");
     expect(validate(rows[1]!.parsed, rows[1]!.warnings).status).toBe("invalid");
   });
+
+  it("expired own domain → no own site, valid, informational warning", () => {
+    const t = parseCsv("Empresa;Site;Status do site;Observação\nBarbershop MD;barbeariamd.shop;A — NÃO POSSUI SITE;Domínio próprio expirado\n");
+    const [r] = parseTableRows(t, {});
+    expect(r!.parsed.website_url).toBeNull();
+    expect(r!.parsed.website_status).toBe("nao_possui");
+    expect(r!.warnings).toContain("Domínio próprio localizado, porém expirado/inativo.");
+    expect(r!.raw["Site"]).toBe("barbeariamd.shop");
+  });
 });
