@@ -105,6 +105,7 @@ const isSocialUrl = (u: string) => /instagram\.com|instagr\.am|facebook\.com|fb\
 /** Third-party platform (scheduling, profile, directory, link-in-bio, maps) — never the company's own site. */
 export const isThirdPartyUrl = (u: string) => isSchedulingUrl(u) || isSocialUrl(u) || isMapsUrl(u) || /google\.[a-z.]+\//i.test(u);
 export const SITE_PLATFORM_CONFLICT = "Status de site do relatório conflita com plataforma de terceiros";
+export const EXPIRED_SITE_WARNING = "Domínio próprio localizado, porém expirado/inativo.";
 export const WA_AMBIGUOUS = "WhatsApp indicado, número não confirmado";
 const isMapsUrl = (u: string) => /google\.[a-z.]+\/maps|maps\.google|maps\.app\.goo\.gl|goo\.gl\/maps|g\.page|share\.google/i.test(u);
 
@@ -521,6 +522,7 @@ const textOrNull = (s: string | undefined) => { const t = stripMd(s ?? ""); retu
 export function parseTableRows(table: RawTable, defaults: GarimpoDefaults): ParsedRow[] {
   const map = mapHeaders(table.headers);
   const idx = (f: Field) => map.indexOf(f);
+  const EXPIRED_SITE = /(dominio|site)( proprio)? (esta |encontra-se )?(expirad|inativ)|(dominio|site)( proprio)? nao (esta )?ativo|sem site proprio ativo|site expirad|dominio expirad/;
   const out: ParsedRow[] = [];
   table.rows.forEach((cells, i) => {
     if (!cells.some((c) => stripMd(c))) return; // fully empty line
@@ -595,6 +597,12 @@ export function parseTableRows(table: RawTable, defaults: GarimpoDefaults): Pars
       p.website_url = null;
     }
     p.website_status = parseWebsiteStatus(cell("website_status"));
+    // deterministic: report says the own domain is expired/inactive → no own site (URL kept only in raw_data)
+    if (p.website_url && EXPIRED_SITE.test(normKey(stripMd(cells.join(" ; "))))) {
+      p.website_url = null;
+      p.website_status = "nao_possui";
+      w.push(EXPIRED_SITE_WARNING);
+    }
     if (!p.website_status && idx("website_status") < 0) {
       const k = normKey(stripMd(siteCell));
       if (/nao possui|sem site/.test(k)) p.website_status = "nao_possui";
