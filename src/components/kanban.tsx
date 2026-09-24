@@ -62,12 +62,13 @@ export function Kanban({ leads, statusFilter }: { leads: Lead[]; statusFilter?: 
     const to = e.over?.id as LeadStatus | undefined;
     const lead = leads.find((l) => l.id === e.active.id);
     if (!to || !lead || lead.status === to) return;
-    const prev = qc.getQueryData<Lead[]>(["leads"]);
-    qc.setQueryData<Lead[]>(["leads"], (old) => old?.map((l) => (l.id === lead.id ? { ...l, status: to } : l)));
+    const prevAll = qc.getQueriesData<Lead[]>({ queryKey: ["leads"] });
+    const restore = () => prevAll.forEach(([k, d]) => qc.setQueryData(k, d));
+    qc.setQueriesData<Lead[]>({ queryKey: ["leads"] }, (old) => (Array.isArray(old) ? old.map((l) => (l.id === lead.id ? { ...l, status: to } : l)) : old));
     if (to === "convertido") {
       // Conversion creates the client + status + activity in one transaction.
       const { error } = await supabase.rpc("convert_lead_to_client", { _lead_id: lead.id });
-      if (error) { qc.setQueryData(["leads"], prev); return toast.error(friendlyError(error)); }
+      if (error) { restore(); return toast.error(friendlyError(error)); }
       toast.success("Lead convertido em cliente.");
       qc.invalidateQueries({ queryKey: ["activities"] });
       qc.invalidateQueries({ queryKey: ["clients"] });
@@ -75,7 +76,7 @@ export function Kanban({ leads, statusFilter }: { leads: Lead[]; statusFilter?: 
     }
     const { error } = await supabase.from("leads").update({ status: to }).eq("id", lead.id);
     if (error) {
-      qc.setQueryData(["leads"], prev);
+      restore();
       return toast.error(friendlyError(error));
     }
     await logActivity(lead.id, "status_changed", to === "nao_tem_interesse" ? "Lead marcado como Não tem interesse." : `Status alterado de ${statusLabel(lead.status)} para ${statusLabel(to)}`, { from: lead.status, to, via: "kanban" });
