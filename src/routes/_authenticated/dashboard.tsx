@@ -23,12 +23,21 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
   component: Dashboard,
 });
 
-// Furthest funnel stage a status represents (0 = lead only … 5 = converted).
-const STAGE: Record<LeadStatus, number> = {
-  novo: 0, validar: 0, pronto_contato: 0, nao_qualificado: 0,
-  abordagem_enviada: 1, sem_resposta: 1, recuperacao: 1, perdido: 1,
-  respondeu: 2, interessado: 3, valor_apresentado: 3, oferta_apresentada: 3, link_enviado: 4, convertido: 5,
+// Funnel stage represented by a real recorded event (1 Abordagem … 5 Conversão). Status transitions count only
+// for the status they moved TO — a later status never implies earlier stages.
+const STATUS_STAGE: Partial<Record<string, number>> = {
+  abordagem_enviada: 1, respondeu: 2, interessado: 3, link_enviado: 4, convertido: 5,
 };
+function eventStage(type: string, metadata: unknown): number | null {
+  if (type === "approach_sent" || type === "script_sent") return 1;
+  if (type === "link_sent") return 4;
+  if (type === "converted") return 5;
+  if (type === "status_changed") {
+    const to = (metadata as { to?: string } | null)?.to;
+    return (to && STATUS_STAGE[to]) || null;
+  }
+  return null;
+}
 const FUNNEL = ["Leads", "Abordagem", "Resposta", "Interesse", "Link", "Conversão"];
 
 function Dashboard() {
@@ -36,6 +45,15 @@ function Dashboard() {
   const projects = useProjects();
   const finance = useFinance();
   const { data: profiles } = useProfiles();
+  const funnelEvents = useQuery({
+    queryKey: ["activities", "funnel"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("lead_activities").select("lead_id, activity_type, metadata, created_at")
+        .in("activity_type", ["approach_sent", "script_sent", "status_changed", "link_sent", "converted"]).limit(100000);
+      if (error) throw error;
+      return data;
+    },
+  });
   const acts = useQuery({
     queryKey: ["activities"],
     queryFn: async () => {
@@ -55,8 +73,15 @@ function Dashboard() {
   const com = (e: Tables<"financial_entries">): [number | null, string] => [e.commission_amount, e.commission_currency];
   const sitesProd = P.filter((p) => p.status !== "publicado").length;
 
-  // Leads whose current stage is at or beyond each funnel step (a lead in a later stage passed the earlier ones).
-  const reached = FUNNEL.map((_, i) => (L.filter((l) => l.status !== "nao_qualificado" || i === 0).filter((l) => STAGE[l.status] >= i).length));
+  // Funnel = DISTINCT active leads with a real recorded event per stage (never inferred from current status).
+  const activeIds = new Set(L.map((l) => l.id));
+  const stageSets = FUNNEL.map(() => new Set<string>());
+  for (const ev of funnelEvents.data ?? []) {
+    if (!ev.lead_id || !activeIds.has(ev.lead_id)) continue;
+    const s = eventStage(ev.activity_type, ev.metadata);
+    if (s) stageSets[s].add(ev.lead_id);
+  }
+  const reached = FUNNEL.map((_, i) => (i === 0 ? L.length : stageSets[i].size));
   const endOfToday = new Date(); endOfToday.setHours(23, 59, 59, 999);
   const due = L.filter((l) => l.next_followup_at && new Date(l.next_followup_at) <= endOfToday && !["convertido", "perdido", "nao_qualificado"].includes(l.status))
     .sort((a, b) => new Date(a.next_followup_at!).getTime() - new Date(b.next_followup_at!).getTime());
