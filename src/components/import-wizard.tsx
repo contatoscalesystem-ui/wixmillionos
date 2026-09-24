@@ -179,7 +179,7 @@ export function ImportWizard({ resumeBatch }: { resumeBatch?: string }) {
     const action = isDup ? (r.duplicate_action ?? "skip") : null;
     const next: StagedRow = {
       ...r, parsed_data: p, warnings: v.warnings, duplicate_matches: dm, status: isDup ? "duplicate" : v.status, duplicate_action: action,
-      selected_for_import: v.status === "invalid" ? false : isDup ? action === "import_anyway" : r.status === "invalid" ? true : r.selected_for_import,
+      selected_for_import: v.status === "invalid" ? false : isDup ? action === "import_anyway" : r.status === "invalid" ? v.status === "valid" : r.selected_for_import,
     };
     await patchRows([next]); setEdit(null); toast.success("Linha atualizada.");
   };

@@ -408,8 +408,8 @@ const waLinkDigits = (s: string) => [...s.matchAll(/(?:wa\.me\/|api\.whatsapp\.c
 function explicitWaNumbers(s: string): string[] {
   const t = stripMd(s.replace(/\]\([^)]*\)/g, "]"));
   const out: string[] = [...waLinkDigits(s)];
-  const after = new RegExp(`${WA_WORD}\\s*(?:confirmado|oficial|business)?\\s*[:\\-–]?\\s*(${PHONE_SRC})`, "gi");
-  const before = new RegExp(`(${PHONE_SRC})\\s*[(\\[]?\\s*(?:-\\s*)?${WA_WORD}(?!\\s*(?:\\w+\\s+){0,2}n[aã]o)`, "gi");
+  const after = new RegExp(`${WA_WORD}(?:\\s*(?:/|e)\\s*(?:telefone|fone|tel))?\\s*(?:confirmado|oficial|business)?\\s*[:\\-–]?\\s*(${PHONE_SRC})`, "gi");
+  const before = new RegExp(`(${PHONE_SRC})\\s*[(\\[]?\\s*(?:-\\s*)?(?:(?:telefone|fone|tel)\\s*(?:/|e)\\s*)?${WA_WORD}(?!\\s*(?:\\w+\\s+){0,2}n[aã]o)`, "gi");
   for (const m of t.matchAll(after)) out.push(m[1]!.trim());
   for (const m of t.matchAll(before)) out.push(m[1]!.trim());
   return out;
@@ -447,17 +447,60 @@ export function resolveWhatsapp(c: { phoneCell: string; waCell: string; schedCel
   return { phone, whatsapp, confirmed, extra, warnings };
 }
 
-/** Followers only when they belong to Instagram (never Facebook/TikTok counts). */
+const NOT_FOLLOWERS = /publica[cç]|\bposts?\b|\breels?\b|seguindo|following/i;
+/** Number written right before "seguidores/followers" (e.g. "3,3 mil+ seguidores; 305 publicações" → 3300). */
+function followersNear(s: string): number | null {
+  const m = s.match(/(\d+(?:[.,]\d+)*\s*(?:k|mil|mi|m)?)\s*\+?\s*(?:seguidores|followers)/i);
+  return m ? parseFollowers(m[1]!) : null;
+}
+/** Followers only when they belong to Instagram (never Facebook/TikTok counts, never posts/following). */
 export function parseInstagramFollowers(cellText: string, hasInstagram: boolean): { value: number | null; warning: string | null } {
   const t = stripMd(cellText);
   if (!t || isEmptyValue(t)) return { value: null, warning: null };
   const other = /facebook|\bfb\b|tiktok|youtube|linkedin|twitter|\bx\b/i;
   const segs = t.split(/[;|]|,\s(?=\D)|\s\/\s/).map((x) => x.trim()).filter(Boolean);
-  const igSeg = segs.find((x) => /instagram|\big\b|insta/i.test(x));
-  if (igSeg) return { value: parseFollowers(igSeg.replace(/instagram|insta|\big\b/gi, "")), warning: null };
+  const usable = segs.filter((x) => /seguidores|followers/i.test(x) || !NOT_FOLLOWERS.test(x));
+  const igSeg = usable.find((x) => /instagram|\big\b|insta/i.test(x) && !other.test(x));
+  if (igSeg) return { value: followersNear(igSeg) ?? parseFollowers(igSeg.replace(/instagram|insta|\big\b/gi, "")), warning: null };
   if (other.test(t)) return { value: null, warning: "Seguidores de outra rede (não Instagram)" };
   if (!hasInstagram) return { value: null, warning: "Seguidores sem Instagram localizado" };
-  return { value: parseFollowers(t), warning: null };
+  const folSeg = usable.find((x) => /seguidores|followers/i.test(x));
+  if (folSeg) return { value: followersNear(folSeg) ?? parseFollowers(folSeg), warning: null };
+  return { value: usable[0] ? parseFollowers(usable[0]) : null, warning: null };
+}
+
+// ---------------------------------------------------------------- contextual scheduling / site
+const CTX_NEGATIVE = /nao (?:foi )?(?:\w+ )?(?:confirmad|localizad|encontrad|atribuid)|nao pertence|indisponivel|inacessivel|homonim|outra cidade|outra unidade|nao resolveu/;
+const SITE_NEGATIVE = CTX_NEGATIVE;
+/** Earliest platform mentioned in a clause that doesn't negate it. A negated mention never becomes scheduling_type. */
+export function resolveScheduling(sCell: string, company: string | null): { type: string | null; url: string | null; rejected: string[] } {
+  const clauses = sCell.split(/;\s*|\.\s+(?=[A-ZÀ-Úa-z])/).map((c) => c.trim()).filter(Boolean);
+  const rejected: string[] = [];
+  const hits: { pos: number; name: string; clause: string }[] = [];
+  let offset = 0;
+  for (const c of clauses) {
+    const nk = normKey(stripMd(c));
+    const neg = CTX_NEGATIVE.test(nk);
+    for (const [re, name] of SCHEDULING_PLATFORMS) {
+      const m = c.match(re);
+      if (!m) continue;
+      if (neg) { if (!rejected.includes(name)) rejected.push(name); continue; }
+      hits.push({ pos: offset + (m.index ?? 0), name, clause: c });
+    }
+    if (!neg && /aplicativo proprio|app proprio/.test(nk)) {
+      const i = nk.search(/aplicativo proprio|app proprio/);
+      hits.push({ pos: offset + i, name: `Aplicativo próprio${company ? ` (${company})` : ""}`, clause: c });
+    }
+    offset += c.length + 1000;
+  }
+  hits.sort((a, b) => a.pos - b.pos);
+  const best = hits[0];
+  const finalRejected = rejected.filter((r) => !hits.some((h) => h.name === r));
+  if (!best) return { type: null, url: null, rejected: finalRejected };
+  const links = extractLinks(best.clause);
+  const [re] = SCHEDULING_PLATFORMS.find(([, n]) => n === best.name) ?? [null];
+  const url = (re ? links.find((l) => re.test(l.url)) : null) ?? (links.length && !/whats|instagram/i.test(best.name) ? links[0] : null);
+  return { type: best.name, url: url?.url ?? null, rejected: finalRejected };
 }
 
 // ---------------------------------------------------------------- row parsing
@@ -546,22 +589,30 @@ export function parseTableRows(table: RawTable, defaults: GarimpoDefaults): Pars
       const u = cleanUrl(stripMd(siteCell));
       if (isValidUrl(u) && !isThirdPartyUrl(u)) p.website_url = u;
     }
+    // the report itself rejects the URL (other business/unit, not confirmed, inaccessible) → keep only in raw/warnings
+    if (p.website_url && SITE_NEGATIVE.test(normKey(stripMd(siteCell)))) {
+      w.push(`Site rejeitado pelo relatório: ${p.website_url}`);
+      p.website_url = null;
+    }
     p.website_status = parseWebsiteStatus(cell("website_status"));
     if (!p.website_status && idx("website_status") < 0) {
       const k = normKey(stripMd(siteCell));
       if (/nao possui|sem site/.test(k)) p.website_status = "nao_possui";
     }
     const statusSaysSite = p.website_status === "site_fraco" || p.website_status === "site_razoavel" || p.website_status === "site_profissional" || (!p.website_status && /possui site/.test(normKey(stripMd(siteCell))) && !/nao possui/.test(normKey(stripMd(siteCell))));
-    if (statusSaysSite && !p.website_url && thirdPartySite) w.push(SITE_PLATFORM_CONFLICT);
+    if (statusSaysSite && !p.website_url && thirdPartySite) {
+      // platform page (AppBarber etc.) is not an own site: CRM truth = no own site; original class stays in raw_data
+      w.push(SITE_PLATFORM_CONFLICT);
+      p.website_status = "nao_possui";
+    }
     if (p.website_status === "nao_confirmado" && !w.includes("Site não confirmado")) w.push("Site não confirmado");
 
-    // scheduling
+    // scheduling — contextual: earliest platform mention in a clause without negative context
     const sCell = cell("scheduling");
-    const sLinks = extractLinks(sCell);
-    const sText = stripMd(sCell);
-    const plat = SCHEDULING_PLATFORMS.find(([r]) => r.test(sCell));
-    p.scheduling_type = plat?.[1] ?? (sText && !isEmptyValue(sText) ? sText : null);
-    p.scheduling_url = sLinks[0]?.url ?? null;
+    const sched = resolveScheduling(sCell, p.company_name);
+    p.scheduling_type = sched.type;
+    p.scheduling_url = sched.url;
+    if (sched.rejected.length) w.push(`Agendamento descartado pelo contexto: ${sched.rejected.join(", ")}`);
     if (!p.scheduling_url && schedFromSite) {
       p.scheduling_url = schedFromSite.url;
       p.scheduling_type ??= SCHEDULING_PLATFORMS.find(([r]) => r.test(schedFromSite.url))?.[1] ?? null;
