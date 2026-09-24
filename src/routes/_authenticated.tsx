@@ -1,7 +1,7 @@
 import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import {
-  LayoutGrid, Gem, Users, BarChart3, User, Box, RotateCcw, Database,
+  LayoutGrid, Gem, Users, BarChart3, User, Box, RotateCcw, Database, Route as RouteIcon,
   CalendarDays, File, Settings, LogOut, Menu, X, ShieldCheck,
 } from "lucide-react";
 import symbol from "@/assets/million-symbol.png.asset.json";
@@ -18,6 +18,7 @@ const NAV = [
   { to: "/garimpos", label: "Garimpos", icon: Gem },
   { to: "/leads", label: "Leads", icon: Users },
   { to: "/pipeline", label: "Pipeline", icon: BarChart3 },
+  { to: "/script-comercial", label: "Script Comercial", icon: RouteIcon },
   { to: "/clientes", label: "Clientes", icon: User },
   { to: "/producao", label: "Produção", icon: Box },
   { to: "/recuperacao", label: "Recuperação", icon: RotateCcw },

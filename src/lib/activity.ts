@@ -22,4 +22,8 @@ export const ACTIVITY_LABEL: Record<string, string> = {
   archived: "Lead arquivado",
   restored: "Lead restaurado",
   import_completed: "Importação concluída",
+  script_copied: "Script — mensagem copiada",
+  script_sent: "Script — mensagem enviada",
+  script_stage_done: "Script — etapa concluída",
+  script_stage_undone: "Script — etapa desmarcada",
 };
