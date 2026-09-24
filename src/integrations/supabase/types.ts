@@ -1645,6 +1645,7 @@ export type Database = {
         | "link_enviado"
         | "convertido"
         | "recuperacao"
+        | "nao_tem_interesse"
         | "perdido"
         | "nao_qualificado"
       project_status:
@@ -1831,6 +1832,7 @@ export const Constants = {
         "link_enviado",
         "convertido",
         "recuperacao",
+        "nao_tem_interesse",
         "perdido",
         "nao_qualificado",
       ],
