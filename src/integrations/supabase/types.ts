@@ -14,6 +14,135 @@ export type Database = {
   }
   public: {
     Tables: {
+      accounts: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          city: string | null
+          company: string | null
+          created_at: string
+          email: string | null
+          full_name: string | null
+          last_seen_at: string | null
+          phone: string | null
+          state: string | null
+          status: Database["public"]["Enums"]["account_status"]
+          status_changed_at: string | null
+          updated_at: string
+          user_id: string
+          welcome_ack_at: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          city?: string | null
+          company?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          last_seen_at?: string | null
+          phone?: string | null
+          state?: string | null
+          status?: Database["public"]["Enums"]["account_status"]
+          status_changed_at?: string | null
+          updated_at?: string
+          user_id: string
+          welcome_ack_at?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          city?: string | null
+          company?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          last_seen_at?: string | null
+          phone?: string | null
+          state?: string | null
+          status?: Database["public"]["Enums"]["account_status"]
+          status_changed_at?: string | null
+          updated_at?: string
+          user_id?: string
+          welcome_ack_at?: string | null
+        }
+        Relationships: []
+      }
+      admin_audit_logs: {
+        Row: {
+          action: string
+          admin_id: string
+          created_at: string
+          entity_id: string | null
+          entity_type: string | null
+          id: string
+          metadata: Json
+          target_user_id: string | null
+          workspace_id: string | null
+        }
+        Insert: {
+          action: string
+          admin_id: string
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          metadata?: Json
+          target_user_id?: string | null
+          workspace_id?: string | null
+        }
+        Update: {
+          action?: string
+          admin_id?: string
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          metadata?: Json
+          target_user_id?: string | null
+          workspace_id?: string | null
+        }
+        Relationships: []
+      }
+      admin_notifications: {
+        Row: {
+          created_at: string
+          created_by: string
+          expires_at: string | null
+          id: string
+          message: string
+          show_once: boolean
+          target_type: string
+          target_user_id: string | null
+          title: string
+          type: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string
+          expires_at?: string | null
+          id?: string
+          message: string
+          show_once?: boolean
+          target_type: string
+          target_user_id?: string | null
+          title: string
+          type?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          expires_at?: string | null
+          id?: string
+          message?: string
+          show_once?: boolean
+          target_type?: string
+          target_user_id?: string | null
+          title?: string
+          type?: string
+        }
+        Relationships: []
+      }
       clients: {
         Row: {
           city: string | null
@@ -840,6 +969,76 @@ export type Database = {
           },
         ]
       }
+      notification_receipts: {
+        Row: {
+          acknowledged_at: string | null
+          displayed_at: string
+          notification_id: string
+          user_id: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          displayed_at?: string
+          notification_id: string
+          user_id: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          displayed_at?: string
+          notification_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_receipts_notification_id_fkey"
+            columns: ["notification_id"]
+            isOneToOne: false
+            referencedRelation: "admin_notifications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      platform_events: {
+        Row: {
+          created_at: string
+          entity_id: string | null
+          entity_type: string | null
+          event_type: string
+          id: string
+          metadata: Json
+          user_id: string | null
+          workspace_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          event_type: string
+          id?: string
+          metadata?: Json
+          user_id?: string | null
+          workspace_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          event_type?: string
+          id?: string
+          metadata?: Json
+          user_id?: string | null
+          workspace_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "platform_events_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: false
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -934,6 +1133,21 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      super_admins: {
+        Row: {
+          created_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       user_roles: {
         Row: {
@@ -1091,6 +1305,26 @@ export type Database = {
     }
     Functions: {
       accept_pending_invite: { Args: never; Returns: boolean }
+      ack_welcome: { Args: never; Returns: undefined }
+      admin_activity: { Args: { _limit?: number }; Returns: Json }
+      admin_approve_user: { Args: { _user_id: string }; Returns: string }
+      admin_global_stats: { Args: never; Returns: Json }
+      admin_list_users: { Args: never; Returns: Json }
+      admin_log: {
+        Args: { _action: string; _meta?: Json; _target: string; _ws: string }
+        Returns: undefined
+      }
+      admin_set_account_status: {
+        Args: {
+          _status: Database["public"]["Enums"]["account_status"]
+          _user_id: string
+        }
+        Returns: undefined
+      }
+      admin_user_data: {
+        Args: { _section: string; _user_id: string }
+        Returns: Json
+      }
       commit_import_batch: {
         Args: {
           _assigned_to?: string
@@ -1126,12 +1360,18 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_super_admin: { Args: never; Returns: boolean }
+      log_event: { Args: { _type: string }; Returns: undefined }
+      my_account: { Args: never; Returns: Json }
       norm_phone: { Args: { t: string }; Returns: string }
       norm_text: { Args: { t: string }; Returns: string }
       norm_url: { Args: { t: string }; Returns: string }
+      seed_workspace: { Args: { _ws: string }; Returns: undefined }
       signup_open: { Args: never; Returns: boolean }
+      touch_last_seen: { Args: never; Returns: undefined }
     }
     Enums: {
+      account_status: "pending" | "approved" | "blocked" | "rejected"
       app_role: "admin" | "operador"
       financial_status:
         | "pendente"
@@ -1307,6 +1547,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      account_status: ["pending", "approved", "blocked", "rejected"],
       app_role: ["admin", "operador"],
       financial_status: [
         "pendente",

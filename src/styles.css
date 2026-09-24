@@ -62,6 +62,8 @@
   --color-gold: var(--gold);
   --color-gold-foreground: var(--gold-foreground);
   --color-gold-soft: var(--gold-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
   --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
 }
 
@@ -89,6 +91,8 @@
   --gold: #B9943B;
   --gold-foreground: #FFFFFF;
   --gold-soft: #F4EEDF;
+  --success: #2F6B3F;
+  --success-soft: #E4EFE6;
   --chart-1: #B9943B;
   --chart-2: #111111;
   --chart-3: #6B6B66;

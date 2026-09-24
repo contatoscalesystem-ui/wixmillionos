@@ -11,6 +11,11 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
+import { Route as AdminRouteImport } from './routes/admin'
+import { Route as AguardandoAprovacaoRouteImport } from './routes/aguardando-aprovacao'
+import { Route as CadastroRouteImport } from './routes/cadastro'
+import { Route as CadastroRejeitadoRouteImport } from './routes/cadastro-rejeitado'
+import { Route as ContaBloqueadaRouteImport } from './routes/conta-bloqueada'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as AuthenticatedAgendaRouteImport } from './routes/_authenticated/agenda'
 import { Route as AuthenticatedArquivosRouteImport } from './routes/_authenticated/arquivos'
@@ -21,12 +26,17 @@ import { Route as AuthenticatedFinanceiroRouteImport } from './routes/_authentic
 import { Route as AuthenticatedPipelineRouteImport } from './routes/_authenticated/pipeline'
 import { Route as AuthenticatedProducaoRouteImport } from './routes/_authenticated/producao'
 import { Route as AuthenticatedRecuperacaoRouteImport } from './routes/_authenticated/recuperacao'
+import { Route as AdminIndexRouteImport } from './routes/admin.index'
+import { Route as AdminAtividadeRouteImport } from './routes/admin.atividade'
+import { Route as AdminMensagensRouteImport } from './routes/admin.mensagens'
 import { Route as AuthenticatedConfiguracoesEquipeRouteImport } from './routes/_authenticated/configuracoes_.equipe'
 import { Route as AuthenticatedGarimposIndexRouteImport } from './routes/_authenticated/garimpos.index'
 import { Route as AuthenticatedGarimposIdRouteImport } from './routes/_authenticated/garimpos.$id'
 import { Route as AuthenticatedGarimposImportarRouteImport } from './routes/_authenticated/garimpos.importar'
 import { Route as AuthenticatedLeadsIndexRouteImport } from './routes/_authenticated/leads.index'
 import { Route as AuthenticatedLeadsIdRouteImport } from './routes/_authenticated/leads.$id'
+import { Route as AdminUsuariosIndexRouteImport } from './routes/admin.usuarios.index'
+import { Route as AdminUsuariosIdRouteImport } from './routes/admin.usuarios.$id'
 import { Route as AuthenticatedGarimposLotesIdRouteImport } from './routes/_authenticated/garimpos.lotes.$id'
 
 const IndexRoute = IndexRouteImport.update({
@@ -36,6 +46,31 @@ const IndexRoute = IndexRouteImport.update({
 } as any)
 const AuthenticatedRoute = AuthenticatedRouteImport.update({
   id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AguardandoAprovacaoRoute = AguardandoAprovacaoRouteImport.update({
+  id: '/aguardando-aprovacao',
+  path: '/aguardando-aprovacao',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CadastroRoute = CadastroRouteImport.update({
+  id: '/cadastro',
+  path: '/cadastro',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CadastroRejeitadoRoute = CadastroRejeitadoRouteImport.update({
+  id: '/cadastro-rejeitado',
+  path: '/cadastro-rejeitado',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContaBloqueadaRoute = ContaBloqueadaRouteImport.update({
+  id: '/conta-bloqueada',
+  path: '/conta-bloqueada',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -90,6 +125,21 @@ const AuthenticatedRecuperacaoRoute =
     path: '/recuperacao',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAtividadeRoute = AdminAtividadeRouteImport.update({
+  id: '/atividade',
+  path: '/atividade',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminMensagensRoute = AdminMensagensRouteImport.update({
+  id: '/mensagens',
+  path: '/mensagens',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AuthenticatedConfiguracoesEquipeRoute =
   AuthenticatedConfiguracoesEquipeRouteImport.update({
     id: '/configuracoes_/equipe',
@@ -123,6 +173,16 @@ const AuthenticatedLeadsIdRoute = AuthenticatedLeadsIdRouteImport.update({
   path: '/leads/$id',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AdminUsuariosIndexRoute = AdminUsuariosIndexRouteImport.update({
+  id: '/usuarios/',
+  path: '/usuarios/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminUsuariosIdRoute = AdminUsuariosIdRouteImport.update({
+  id: '/usuarios/$id',
+  path: '/usuarios/$id',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AuthenticatedGarimposLotesIdRoute =
   AuthenticatedGarimposLotesIdRouteImport.update({
     id: '/garimpos/lotes/$id',
@@ -132,6 +192,11 @@ const AuthenticatedGarimposLotesIdRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRouteWithChildren
+  '/aguardando-aprovacao': typeof AguardandoAprovacaoRoute
+  '/cadastro': typeof CadastroRoute
+  '/cadastro-rejeitado': typeof CadastroRejeitadoRoute
+  '/conta-bloqueada': typeof ContaBloqueadaRoute
   '/login': typeof LoginRoute
   '/agenda': typeof AuthenticatedAgendaRoute
   '/arquivos': typeof AuthenticatedArquivosRoute
@@ -142,16 +207,25 @@ export interface FileRoutesByFullPath {
   '/pipeline': typeof AuthenticatedPipelineRoute
   '/producao': typeof AuthenticatedProducaoRoute
   '/recuperacao': typeof AuthenticatedRecuperacaoRoute
+  '/admin/atividade': typeof AdminAtividadeRoute
+  '/admin/mensagens': typeof AdminMensagensRoute
+  '/admin/': typeof AdminIndexRoute
   '/configuracoes/equipe': typeof AuthenticatedConfiguracoesEquipeRoute
   '/garimpos/$id': typeof AuthenticatedGarimposIdRoute
   '/garimpos/importar': typeof AuthenticatedGarimposImportarRoute
   '/leads/$id': typeof AuthenticatedLeadsIdRoute
+  '/admin/usuarios/$id': typeof AdminUsuariosIdRoute
   '/garimpos/': typeof AuthenticatedGarimposIndexRoute
   '/leads/': typeof AuthenticatedLeadsIndexRoute
+  '/admin/usuarios/': typeof AdminUsuariosIndexRoute
   '/garimpos/lotes/$id': typeof AuthenticatedGarimposLotesIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/aguardando-aprovacao': typeof AguardandoAprovacaoRoute
+  '/cadastro': typeof CadastroRoute
+  '/cadastro-rejeitado': typeof CadastroRejeitadoRoute
+  '/conta-bloqueada': typeof ContaBloqueadaRoute
   '/login': typeof LoginRoute
   '/agenda': typeof AuthenticatedAgendaRoute
   '/arquivos': typeof AuthenticatedArquivosRoute
@@ -162,18 +236,28 @@ export interface FileRoutesByTo {
   '/pipeline': typeof AuthenticatedPipelineRoute
   '/producao': typeof AuthenticatedProducaoRoute
   '/recuperacao': typeof AuthenticatedRecuperacaoRoute
+  '/admin/atividade': typeof AdminAtividadeRoute
+  '/admin/mensagens': typeof AdminMensagensRoute
+  '/admin': typeof AdminIndexRoute
   '/configuracoes/equipe': typeof AuthenticatedConfiguracoesEquipeRoute
   '/garimpos/$id': typeof AuthenticatedGarimposIdRoute
   '/garimpos/importar': typeof AuthenticatedGarimposImportarRoute
   '/leads/$id': typeof AuthenticatedLeadsIdRoute
+  '/admin/usuarios/$id': typeof AdminUsuariosIdRoute
   '/garimpos': typeof AuthenticatedGarimposIndexRoute
   '/leads': typeof AuthenticatedLeadsIndexRoute
+  '/admin/usuarios': typeof AdminUsuariosIndexRoute
   '/garimpos/lotes/$id': typeof AuthenticatedGarimposLotesIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/admin': typeof AdminRouteWithChildren
+  '/aguardando-aprovacao': typeof AguardandoAprovacaoRoute
+  '/cadastro': typeof CadastroRoute
+  '/cadastro-rejeitado': typeof CadastroRejeitadoRoute
+  '/conta-bloqueada': typeof ContaBloqueadaRoute
   '/login': typeof LoginRoute
   '/_authenticated/agenda': typeof AuthenticatedAgendaRoute
   '/_authenticated/arquivos': typeof AuthenticatedArquivosRoute
@@ -184,18 +268,28 @@ export interface FileRoutesById {
   '/_authenticated/pipeline': typeof AuthenticatedPipelineRoute
   '/_authenticated/producao': typeof AuthenticatedProducaoRoute
   '/_authenticated/recuperacao': typeof AuthenticatedRecuperacaoRoute
+  '/admin/atividade': typeof AdminAtividadeRoute
+  '/admin/mensagens': typeof AdminMensagensRoute
+  '/admin/': typeof AdminIndexRoute
   '/_authenticated/configuracoes_/equipe': typeof AuthenticatedConfiguracoesEquipeRoute
   '/_authenticated/garimpos/$id': typeof AuthenticatedGarimposIdRoute
   '/_authenticated/garimpos/importar': typeof AuthenticatedGarimposImportarRoute
   '/_authenticated/leads/$id': typeof AuthenticatedLeadsIdRoute
+  '/admin/usuarios/$id': typeof AdminUsuariosIdRoute
   '/_authenticated/garimpos/': typeof AuthenticatedGarimposIndexRoute
   '/_authenticated/leads/': typeof AuthenticatedLeadsIndexRoute
+  '/admin/usuarios/': typeof AdminUsuariosIndexRoute
   '/_authenticated/garimpos/lotes/$id': typeof AuthenticatedGarimposLotesIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
+    | '/aguardando-aprovacao'
+    | '/cadastro'
+    | '/cadastro-rejeitado'
+    | '/conta-bloqueada'
     | '/login'
     | '/agenda'
     | '/arquivos'
@@ -206,16 +300,25 @@ export interface FileRouteTypes {
     | '/pipeline'
     | '/producao'
     | '/recuperacao'
+    | '/admin/atividade'
+    | '/admin/mensagens'
+    | '/admin/'
     | '/configuracoes/equipe'
     | '/garimpos/$id'
     | '/garimpos/importar'
     | '/leads/$id'
+    | '/admin/usuarios/$id'
     | '/garimpos/'
     | '/leads/'
+    | '/admin/usuarios/'
     | '/garimpos/lotes/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/aguardando-aprovacao'
+    | '/cadastro'
+    | '/cadastro-rejeitado'
+    | '/conta-bloqueada'
     | '/login'
     | '/agenda'
     | '/arquivos'
@@ -226,17 +329,27 @@ export interface FileRouteTypes {
     | '/pipeline'
     | '/producao'
     | '/recuperacao'
+    | '/admin/atividade'
+    | '/admin/mensagens'
+    | '/admin'
     | '/configuracoes/equipe'
     | '/garimpos/$id'
     | '/garimpos/importar'
     | '/leads/$id'
+    | '/admin/usuarios/$id'
     | '/garimpos'
     | '/leads'
+    | '/admin/usuarios'
     | '/garimpos/lotes/$id'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/admin'
+    | '/aguardando-aprovacao'
+    | '/cadastro'
+    | '/cadastro-rejeitado'
+    | '/conta-bloqueada'
     | '/login'
     | '/_authenticated/agenda'
     | '/_authenticated/arquivos'
@@ -247,18 +360,28 @@ export interface FileRouteTypes {
     | '/_authenticated/pipeline'
     | '/_authenticated/producao'
     | '/_authenticated/recuperacao'
+    | '/admin/atividade'
+    | '/admin/mensagens'
+    | '/admin/'
     | '/_authenticated/configuracoes_/equipe'
     | '/_authenticated/garimpos/$id'
     | '/_authenticated/garimpos/importar'
     | '/_authenticated/leads/$id'
+    | '/admin/usuarios/$id'
     | '/_authenticated/garimpos/'
     | '/_authenticated/leads/'
+    | '/admin/usuarios/'
     | '/_authenticated/garimpos/lotes/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  AdminRoute: typeof AdminRouteWithChildren
+  AguardandoAprovacaoRoute: typeof AguardandoAprovacaoRoute
+  CadastroRoute: typeof CadastroRoute
+  CadastroRejeitadoRoute: typeof CadastroRejeitadoRoute
+  ContaBloqueadaRoute: typeof ContaBloqueadaRoute
   LoginRoute: typeof LoginRoute
 }
 
@@ -276,6 +399,41 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/aguardando-aprovacao': {
+      id: '/aguardando-aprovacao'
+      path: '/aguardando-aprovacao'
+      fullPath: '/aguardando-aprovacao'
+      preLoaderRoute: typeof AguardandoAprovacaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cadastro': {
+      id: '/cadastro'
+      path: '/cadastro'
+      fullPath: '/cadastro'
+      preLoaderRoute: typeof CadastroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cadastro-rejeitado': {
+      id: '/cadastro-rejeitado'
+      path: '/cadastro-rejeitado'
+      fullPath: '/cadastro-rejeitado'
+      preLoaderRoute: typeof CadastroRejeitadoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/conta-bloqueada': {
+      id: '/conta-bloqueada'
+      path: '/conta-bloqueada'
+      fullPath: '/conta-bloqueada'
+      preLoaderRoute: typeof ContaBloqueadaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -348,6 +506,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRecuperacaoRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/atividade': {
+      id: '/admin/atividade'
+      path: '/atividade'
+      fullPath: '/admin/atividade'
+      preLoaderRoute: typeof AdminAtividadeRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/mensagens': {
+      id: '/admin/mensagens'
+      path: '/mensagens'
+      fullPath: '/admin/mensagens'
+      preLoaderRoute: typeof AdminMensagensRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/_authenticated/configuracoes_/equipe': {
       id: '/_authenticated/configuracoes_/equipe'
       path: '/configuracoes/equipe'
@@ -389,6 +568,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/leads/$id'
       preLoaderRoute: typeof AuthenticatedLeadsIdRouteImport
       parentRoute: typeof AuthenticatedRoute
+    }
+    '/admin/usuarios/': {
+      id: '/admin/usuarios/'
+      path: '/usuarios'
+      fullPath: '/admin/usuarios/'
+      preLoaderRoute: typeof AdminUsuariosIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/usuarios/$id': {
+      id: '/admin/usuarios/$id'
+      path: '/usuarios/$id'
+      fullPath: '/admin/usuarios/$id'
+      preLoaderRoute: typeof AdminUsuariosIdRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/_authenticated/garimpos/lotes/$id': {
       id: '/_authenticated/garimpos/lotes/$id'
@@ -442,9 +635,32 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
   AuthenticatedRouteChildren,
 )
 
+interface AdminRouteChildren {
+  AdminAtividadeRoute: typeof AdminAtividadeRoute
+  AdminMensagensRoute: typeof AdminMensagensRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+  AdminUsuariosIdRoute: typeof AdminUsuariosIdRoute
+  AdminUsuariosIndexRoute: typeof AdminUsuariosIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminAtividadeRoute: AdminAtividadeRoute,
+  AdminMensagensRoute: AdminMensagensRoute,
+  AdminIndexRoute: AdminIndexRoute,
+  AdminUsuariosIdRoute: AdminUsuariosIdRoute,
+  AdminUsuariosIndexRoute: AdminUsuariosIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  AdminRoute: AdminRouteWithChildren,
+  AguardandoAprovacaoRoute: AguardandoAprovacaoRoute,
+  CadastroRoute: CadastroRoute,
+  CadastroRejeitadoRoute: CadastroRejeitadoRoute,
+  ContaBloqueadaRoute: ContaBloqueadaRoute,
   LoginRoute: LoginRoute,
 }
 export const routeTree = rootRouteImport

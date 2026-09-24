@@ -2,10 +2,11 @@ import { createFileRoute, Link, Outlet, useNavigate, useRouterState } from "@tan
 import { useEffect, useState } from "react";
 import {
   LayoutDashboard, Pickaxe, Users, KanbanSquare, Briefcase, Hammer, RotateCcw, Wallet,
-  CalendarDays, FolderOpen, Settings, LogOut, Menu, X,
+  CalendarDays, FolderOpen, Settings, LogOut, Menu, X, ShieldCheck,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/use-auth";
+import { useAuth, statusPath, signOutWithLog } from "@/hooks/use-auth";
+import { NotificationsGate } from "@/components/notifications-gate";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/_authenticated")({
@@ -27,7 +28,7 @@ const NAV = [
 ] as const;
 
 function AppLayout() {
-  const { session, loading, profile, role, checked } = useAuth();
+  const { session, loading, profile, role, checked, account, isSuperAdmin, refreshProfile } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -36,8 +37,14 @@ function AppLayout() {
     if (!loading && !session) navigate({ to: "/login" });
   }, [loading, session, navigate]);
   useEffect(() => setOpen(false), [pathname]);
+  // Re-check account status on every navigation so a block takes effect immediately.
+  useEffect(() => { if (checked) void refreshProfile(); }, [pathname]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (checked && account && account.status !== "approved") navigate({ to: statusPath(account.status) });
+    if (checked && !account) navigate({ to: "/aguardando-aprovacao" });
+  }, [checked, account, navigate]);
 
-  if (loading || !session || !checked) {
+  if (loading || !session || !checked || account?.status !== "approved") {
     return (
       <div className="flex min-h-screen">
         <div className="hidden w-64 bg-sidebar lg:block" />
@@ -56,7 +63,7 @@ function AppLayout() {
           <div className="text-sm font-semibold tracking-[0.3em] text-gold">WIX MILLION OS</div>
           <h1 className="text-xl font-bold">Sem acesso ao espaço de trabalho</h1>
           <p className="text-sm text-muted-foreground">Sua conta não possui acesso liberado. Novos acessos são liberados somente por convite de um administrador.</p>
-          <button className="text-sm underline" onClick={async () => { await supabase.auth.signOut(); navigate({ to: "/login" }); }}>Sair</button>
+          <button className="text-sm underline" onClick={async () => { await signOutWithLog(); navigate({ to: "/login" }); }}>Sair</button>
         </div>
       </div>
     );
@@ -82,11 +89,18 @@ function AppLayout() {
           </Link>
         ))}
       </nav>
+      {isSuperAdmin && (
+        <div className="px-3 pb-2">
+          <Link to="/admin" className="flex items-center gap-3 rounded-md border border-sidebar-border px-3 py-2 text-sm text-gold hover:bg-sidebar-accent">
+            <ShieldCheck className="h-4 w-4" /> Super Admin
+          </Link>
+        </div>
+      )}
       <div className="border-t border-sidebar-border p-4">
         <div className="truncate text-sm font-medium text-sidebar-accent-foreground">{profile?.full_name ?? profile?.email}</div>
         <div className="text-xs capitalize text-sidebar-foreground/50">{role ?? "—"}</div>
         <button
-          onClick={async () => { await supabase.auth.signOut(); navigate({ to: "/login" }); }}
+          onClick={async () => { await signOutWithLog(); navigate({ to: "/login" }); }}
           className="mt-3 flex items-center gap-2 text-xs text-sidebar-foreground/60 hover:text-sidebar-accent-foreground"
         >
           <LogOut className="h-3.5 w-3.5" /> Sair
@@ -116,6 +130,7 @@ function AppLayout() {
           <Outlet />
         </div>
       </main>
+      <NotificationsGate />
     </div>
   );
 }
