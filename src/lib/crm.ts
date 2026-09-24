@@ -113,6 +113,7 @@ export const friendlyError = (e: unknown) => {
   if (msg.includes("LEAD_NOT_FOUND")) return "Lead não encontrado.";
   if (msg.includes("BATCH_NOT_FOUND")) return "Lote de importação não encontrado.";
   if (msg.includes("BATCH_NOT_READY")) return "Este lote já foi importado ou cancelado.";
+  if (msg.includes("BATCH_AUDIT_BLOCKED")) return "A auditoria automática bloqueou este lote. Corrija o relatório e importe de novo.";
   if (msg.includes("ASSIGNEE_NOT_MEMBER")) return "O responsável escolhido não faz parte da equipe.";
   if (msg.includes("INVALID_INITIAL_STATUS")) return "Status inicial inválido para importação.";
   if (/duplicate key|unique/i.test(msg)) return "Já existe um registro com esses dados.";
