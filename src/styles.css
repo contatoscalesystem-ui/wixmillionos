@@ -186,3 +186,9 @@
   .login-btn { height: 54px !important; }
   .login-foot { margin-top: 1.25rem !important; }
 }
+
+.wm-hscroll { scrollbar-width: thin; scrollbar-color: rgba(17,17,17,.25) transparent; }
+.wm-hscroll::-webkit-scrollbar { height: 8px; }
+.wm-hscroll::-webkit-scrollbar-thumb { background: rgba(17,17,17,.22); border-radius: 8px; }
+.wm-hscroll::-webkit-scrollbar-thumb:hover { background: rgba(17,17,17,.4); }
+.wm-hscroll::-webkit-scrollbar-track { background: transparent; }
