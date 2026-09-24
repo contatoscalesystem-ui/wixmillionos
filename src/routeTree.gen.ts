@@ -13,10 +13,14 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AguardandoAprovacaoRouteImport } from './routes/aguardando-aprovacao'
+import { Route as AlterarSenhaObrigatoriaRouteImport } from './routes/alterar-senha-obrigatoria'
 import { Route as CadastroRouteImport } from './routes/cadastro'
 import { Route as CadastroRejeitadoRouteImport } from './routes/cadastro-rejeitado'
+import { Route as ContaBanidaRouteImport } from './routes/conta-banida'
 import { Route as ContaBloqueadaRouteImport } from './routes/conta-bloqueada'
+import { Route as ContaExcluidaRouteImport } from './routes/conta-excluida'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as RedefinirSenhaRouteImport } from './routes/redefinir-senha'
 import { Route as AuthenticatedAgendaRouteImport } from './routes/_authenticated/agenda'
 import { Route as AuthenticatedArquivosRouteImport } from './routes/_authenticated/arquivos'
 import { Route as AuthenticatedClientesRouteImport } from './routes/_authenticated/clientes'
@@ -58,6 +62,11 @@ const AguardandoAprovacaoRoute = AguardandoAprovacaoRouteImport.update({
   path: '/aguardando-aprovacao',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AlterarSenhaObrigatoriaRoute = AlterarSenhaObrigatoriaRouteImport.update({
+  id: '/alterar-senha-obrigatoria',
+  path: '/alterar-senha-obrigatoria',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CadastroRoute = CadastroRouteImport.update({
   id: '/cadastro',
   path: '/cadastro',
@@ -68,14 +77,29 @@ const CadastroRejeitadoRoute = CadastroRejeitadoRouteImport.update({
   path: '/cadastro-rejeitado',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ContaBanidaRoute = ContaBanidaRouteImport.update({
+  id: '/conta-banida',
+  path: '/conta-banida',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ContaBloqueadaRoute = ContaBloqueadaRouteImport.update({
   id: '/conta-bloqueada',
   path: '/conta-bloqueada',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ContaExcluidaRoute = ContaExcluidaRouteImport.update({
+  id: '/conta-excluida',
+  path: '/conta-excluida',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RedefinirSenhaRoute = RedefinirSenhaRouteImport.update({
+  id: '/redefinir-senha',
+  path: '/redefinir-senha',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAgendaRoute = AuthenticatedAgendaRouteImport.update({
@@ -194,10 +218,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/aguardando-aprovacao': typeof AguardandoAprovacaoRoute
+  '/alterar-senha-obrigatoria': typeof AlterarSenhaObrigatoriaRoute
   '/cadastro': typeof CadastroRoute
   '/cadastro-rejeitado': typeof CadastroRejeitadoRoute
+  '/conta-banida': typeof ContaBanidaRoute
   '/conta-bloqueada': typeof ContaBloqueadaRoute
+  '/conta-excluida': typeof ContaExcluidaRoute
   '/login': typeof LoginRoute
+  '/redefinir-senha': typeof RedefinirSenhaRoute
   '/agenda': typeof AuthenticatedAgendaRoute
   '/arquivos': typeof AuthenticatedArquivosRoute
   '/clientes': typeof AuthenticatedClientesRoute
@@ -223,10 +251,14 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/aguardando-aprovacao': typeof AguardandoAprovacaoRoute
+  '/alterar-senha-obrigatoria': typeof AlterarSenhaObrigatoriaRoute
   '/cadastro': typeof CadastroRoute
   '/cadastro-rejeitado': typeof CadastroRejeitadoRoute
+  '/conta-banida': typeof ContaBanidaRoute
   '/conta-bloqueada': typeof ContaBloqueadaRoute
+  '/conta-excluida': typeof ContaExcluidaRoute
   '/login': typeof LoginRoute
+  '/redefinir-senha': typeof RedefinirSenhaRoute
   '/agenda': typeof AuthenticatedAgendaRoute
   '/arquivos': typeof AuthenticatedArquivosRoute
   '/clientes': typeof AuthenticatedClientesRoute
@@ -255,10 +287,14 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/admin': typeof AdminRouteWithChildren
   '/aguardando-aprovacao': typeof AguardandoAprovacaoRoute
+  '/alterar-senha-obrigatoria': typeof AlterarSenhaObrigatoriaRoute
   '/cadastro': typeof CadastroRoute
   '/cadastro-rejeitado': typeof CadastroRejeitadoRoute
+  '/conta-banida': typeof ContaBanidaRoute
   '/conta-bloqueada': typeof ContaBloqueadaRoute
+  '/conta-excluida': typeof ContaExcluidaRoute
   '/login': typeof LoginRoute
+  '/redefinir-senha': typeof RedefinirSenhaRoute
   '/_authenticated/agenda': typeof AuthenticatedAgendaRoute
   '/_authenticated/arquivos': typeof AuthenticatedArquivosRoute
   '/_authenticated/clientes': typeof AuthenticatedClientesRoute
@@ -287,10 +323,14 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/aguardando-aprovacao'
+    | '/alterar-senha-obrigatoria'
     | '/cadastro'
     | '/cadastro-rejeitado'
+    | '/conta-banida'
     | '/conta-bloqueada'
+    | '/conta-excluida'
     | '/login'
+    | '/redefinir-senha'
     | '/agenda'
     | '/arquivos'
     | '/clientes'
@@ -316,10 +356,14 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/aguardando-aprovacao'
+    | '/alterar-senha-obrigatoria'
     | '/cadastro'
     | '/cadastro-rejeitado'
+    | '/conta-banida'
     | '/conta-bloqueada'
+    | '/conta-excluida'
     | '/login'
+    | '/redefinir-senha'
     | '/agenda'
     | '/arquivos'
     | '/clientes'
@@ -347,10 +391,14 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/admin'
     | '/aguardando-aprovacao'
+    | '/alterar-senha-obrigatoria'
     | '/cadastro'
     | '/cadastro-rejeitado'
+    | '/conta-banida'
     | '/conta-bloqueada'
+    | '/conta-excluida'
     | '/login'
+    | '/redefinir-senha'
     | '/_authenticated/agenda'
     | '/_authenticated/arquivos'
     | '/_authenticated/clientes'
@@ -379,10 +427,14 @@ export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   AdminRoute: typeof AdminRouteWithChildren
   AguardandoAprovacaoRoute: typeof AguardandoAprovacaoRoute
+  AlterarSenhaObrigatoriaRoute: typeof AlterarSenhaObrigatoriaRoute
   CadastroRoute: typeof CadastroRoute
   CadastroRejeitadoRoute: typeof CadastroRejeitadoRoute
+  ContaBanidaRoute: typeof ContaBanidaRoute
   ContaBloqueadaRoute: typeof ContaBloqueadaRoute
+  ContaExcluidaRoute: typeof ContaExcluidaRoute
   LoginRoute: typeof LoginRoute
+  RedefinirSenhaRoute: typeof RedefinirSenhaRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -415,6 +467,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AguardandoAprovacaoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/alterar-senha-obrigatoria': {
+      id: '/alterar-senha-obrigatoria'
+      path: '/alterar-senha-obrigatoria'
+      fullPath: '/alterar-senha-obrigatoria'
+      preLoaderRoute: typeof AlterarSenhaObrigatoriaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/cadastro': {
       id: '/cadastro'
       path: '/cadastro'
@@ -429,6 +488,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CadastroRejeitadoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/conta-banida': {
+      id: '/conta-banida'
+      path: '/conta-banida'
+      fullPath: '/conta-banida'
+      preLoaderRoute: typeof ContaBanidaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/conta-bloqueada': {
       id: '/conta-bloqueada'
       path: '/conta-bloqueada'
@@ -436,11 +502,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ContaBloqueadaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/conta-excluida': {
+      id: '/conta-excluida'
+      path: '/conta-excluida'
+      fullPath: '/conta-excluida'
+      preLoaderRoute: typeof ContaExcluidaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/redefinir-senha': {
+      id: '/redefinir-senha'
+      path: '/redefinir-senha'
+      fullPath: '/redefinir-senha'
+      preLoaderRoute: typeof RedefinirSenhaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/agenda': {
@@ -658,10 +738,14 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   AdminRoute: AdminRouteWithChildren,
   AguardandoAprovacaoRoute: AguardandoAprovacaoRoute,
+  AlterarSenhaObrigatoriaRoute: AlterarSenhaObrigatoriaRoute,
   CadastroRoute: CadastroRoute,
   CadastroRejeitadoRoute: CadastroRejeitadoRoute,
+  ContaBanidaRoute: ContaBanidaRoute,
   ContaBloqueadaRoute: ContaBloqueadaRoute,
+  ContaExcluidaRoute: ContaExcluidaRoute,
   LoginRoute: LoginRoute,
+  RedefinirSenhaRoute: RedefinirSenhaRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -17,10 +17,10 @@ async function logEvent(ctx: Ctx, userId: string, action: string, mustChange = f
 function strongPassword() {
   const sets = ["ABCDEFGHJKLMNPQRSTUVWXYZ", "abcdefghijkmnpqrstuvwxyz", "23456789", "!@#$%&*?"];
   const all = sets.join("");
-  const rnd = (n: number) => { const b = new Uint32Array(1); crypto.getRandomValues(b); return b[0] % n; };
-  const chars = sets.map((s) => s[rnd(s.length)]);
-  while (chars.length < 14) chars.push(all[rnd(all.length)]);
-  for (let i = chars.length - 1; i > 0; i--) { const j = rnd(i + 1); [chars[i], chars[j]] = [chars[j], chars[i]]; }
+  const rnd = (n: number) => { const b = new Uint32Array(1); crypto.getRandomValues(b); return (b[0] ?? 0) % n; };
+  const chars: string[] = sets.map((s) => s.charAt(rnd(s.length)));
+  while (chars.length < 14) chars.push(all.charAt(rnd(all.length)));
+  for (let i = chars.length - 1; i > 0; i--) { const j = rnd(i + 1); const t = chars[i]!; chars[i] = chars[j]!; chars[j] = t; }
   return chars.join("");
 }
 
