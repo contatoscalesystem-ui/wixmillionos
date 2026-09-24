@@ -105,6 +105,7 @@ const isSocialUrl = (u: string) => /instagram\.com|instagr\.am|facebook\.com|fb\
 /** Third-party platform (scheduling, profile, directory, link-in-bio, maps) — never the company's own site. */
 export const isThirdPartyUrl = (u: string) => isSchedulingUrl(u) || isSocialUrl(u) || isMapsUrl(u) || /google\.[a-z.]+\//i.test(u);
 export const SITE_PLATFORM_CONFLICT = "Status de site do relatório conflita com plataforma de terceiros";
+export const EXPIRED_SITE_WARNING = "Domínio próprio localizado, porém expirado/inativo.";
 export const WA_AMBIGUOUS = "WhatsApp indicado, número não confirmado";
 const isMapsUrl = (u: string) => /google\.[a-z.]+\/maps|maps\.google|maps\.app\.goo\.gl|goo\.gl\/maps|g\.page|share\.google/i.test(u);
 
