@@ -1388,6 +1388,7 @@ export type Database = {
       complete_password_change: { Args: never; Returns: undefined }
       convert_lead_to_client: { Args: { _lead_id: string }; Returns: string }
       current_workspace_id: { Args: never; Returns: string }
+      delete_leads_bulk: { Args: { p_ids: string[] }; Returns: Json }
       effective_account_status: {
         Args: { a: Database["public"]["Tables"]["accounts"]["Row"] }
         Returns: Database["public"]["Enums"]["account_status"]
