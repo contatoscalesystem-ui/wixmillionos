@@ -110,6 +110,9 @@ export const friendlyError = (e: unknown) => {
   const msg = String((e as { message?: string } | null)?.message ?? "");
   if (msg.includes("LAST_ADMIN")) return "O espaço de trabalho precisa ter pelo menos um admin.";
   if (msg.includes("SIGNUP_INVITE_ONLY")) return "Novos acessos são liberados somente por convite.";
+  if (msg.includes("CANNOT_CHANGE_SUPER_ADMIN")) return "A conta do Super Admin não pode ser bloqueada nem rejeitada.";
+  if (msg.includes("ACCOUNT_NOT_FOUND")) return "Conta não encontrada.";
+  if (msg.includes("FORBIDDEN")) return "Você não tem permissão para esta ação.";
   if (msg.includes("LEAD_NOT_FOUND")) return "Lead não encontrado.";
   if (msg.includes("BATCH_NOT_FOUND")) return "Lote de importação não encontrado.";
   if (msg.includes("BATCH_NOT_READY")) return "Este lote já foi importado ou cancelado.";
