@@ -1,0 +1,2 @@
+ALTER TABLE public.message_templates ADD COLUMN IF NOT EXISTS is_default boolean NOT NULL DEFAULT false;
+CREATE UNIQUE INDEX IF NOT EXISTS message_templates_one_default ON public.message_templates(workspace_id) WHERE is_default;
