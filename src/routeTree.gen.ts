@@ -30,6 +30,7 @@ import { Route as AuthenticatedFinanceiroRouteImport } from './routes/_authentic
 import { Route as AuthenticatedPipelineRouteImport } from './routes/_authenticated/pipeline'
 import { Route as AuthenticatedProducaoRouteImport } from './routes/_authenticated/producao'
 import { Route as AuthenticatedRecuperacaoRouteImport } from './routes/_authenticated/recuperacao'
+import { Route as AuthenticatedScriptComercialRouteImport } from './routes/_authenticated/script-comercial'
 import { Route as AdminIndexRouteImport } from './routes/admin.index'
 import { Route as AdminAtividadeRouteImport } from './routes/admin.atividade'
 import { Route as AdminMensagensRouteImport } from './routes/admin.mensagens'
@@ -149,6 +150,12 @@ const AuthenticatedRecuperacaoRoute =
     path: '/recuperacao',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const AuthenticatedScriptComercialRoute =
+  AuthenticatedScriptComercialRouteImport.update({
+    id: '/script-comercial',
+    path: '/script-comercial',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -235,6 +242,7 @@ export interface FileRoutesByFullPath {
   '/pipeline': typeof AuthenticatedPipelineRoute
   '/producao': typeof AuthenticatedProducaoRoute
   '/recuperacao': typeof AuthenticatedRecuperacaoRoute
+  '/script-comercial': typeof AuthenticatedScriptComercialRoute
   '/admin/atividade': typeof AdminAtividadeRoute
   '/admin/mensagens': typeof AdminMensagensRoute
   '/admin/': typeof AdminIndexRoute
@@ -268,6 +276,7 @@ export interface FileRoutesByTo {
   '/pipeline': typeof AuthenticatedPipelineRoute
   '/producao': typeof AuthenticatedProducaoRoute
   '/recuperacao': typeof AuthenticatedRecuperacaoRoute
+  '/script-comercial': typeof AuthenticatedScriptComercialRoute
   '/admin/atividade': typeof AdminAtividadeRoute
   '/admin/mensagens': typeof AdminMensagensRoute
   '/admin': typeof AdminIndexRoute
@@ -304,6 +313,7 @@ export interface FileRoutesById {
   '/_authenticated/pipeline': typeof AuthenticatedPipelineRoute
   '/_authenticated/producao': typeof AuthenticatedProducaoRoute
   '/_authenticated/recuperacao': typeof AuthenticatedRecuperacaoRoute
+  '/_authenticated/script-comercial': typeof AuthenticatedScriptComercialRoute
   '/admin/atividade': typeof AdminAtividadeRoute
   '/admin/mensagens': typeof AdminMensagensRoute
   '/admin/': typeof AdminIndexRoute
@@ -340,6 +350,7 @@ export interface FileRouteTypes {
     | '/pipeline'
     | '/producao'
     | '/recuperacao'
+    | '/script-comercial'
     | '/admin/atividade'
     | '/admin/mensagens'
     | '/admin/'
@@ -373,6 +384,7 @@ export interface FileRouteTypes {
     | '/pipeline'
     | '/producao'
     | '/recuperacao'
+    | '/script-comercial'
     | '/admin/atividade'
     | '/admin/mensagens'
     | '/admin'
@@ -408,6 +420,7 @@ export interface FileRouteTypes {
     | '/_authenticated/pipeline'
     | '/_authenticated/producao'
     | '/_authenticated/recuperacao'
+    | '/_authenticated/script-comercial'
     | '/admin/atividade'
     | '/admin/mensagens'
     | '/admin/'
@@ -586,6 +599,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRecuperacaoRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/script-comercial': {
+      id: '/_authenticated/script-comercial'
+      path: '/script-comercial'
+      fullPath: '/script-comercial'
+      preLoaderRoute: typeof AuthenticatedScriptComercialRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/admin/': {
       id: '/admin/'
       path: '/'
@@ -683,6 +703,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedPipelineRoute: typeof AuthenticatedPipelineRoute
   AuthenticatedProducaoRoute: typeof AuthenticatedProducaoRoute
   AuthenticatedRecuperacaoRoute: typeof AuthenticatedRecuperacaoRoute
+  AuthenticatedScriptComercialRoute: typeof AuthenticatedScriptComercialRoute
   AuthenticatedConfiguracoesEquipeRoute: typeof AuthenticatedConfiguracoesEquipeRoute
   AuthenticatedGarimposIdRoute: typeof AuthenticatedGarimposIdRoute
   AuthenticatedGarimposImportarRoute: typeof AuthenticatedGarimposImportarRoute
@@ -702,6 +723,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedPipelineRoute: AuthenticatedPipelineRoute,
   AuthenticatedProducaoRoute: AuthenticatedProducaoRoute,
   AuthenticatedRecuperacaoRoute: AuthenticatedRecuperacaoRoute,
+  AuthenticatedScriptComercialRoute: AuthenticatedScriptComercialRoute,
   AuthenticatedConfiguracoesEquipeRoute: AuthenticatedConfiguracoesEquipeRoute,
   AuthenticatedGarimposIdRoute: AuthenticatedGarimposIdRoute,
   AuthenticatedGarimposImportarRoute: AuthenticatedGarimposImportarRoute,
