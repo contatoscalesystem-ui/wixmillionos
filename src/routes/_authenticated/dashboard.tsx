@@ -79,9 +79,9 @@ function Dashboard() {
   for (const ev of funnelEvents.data ?? []) {
     if (!ev.lead_id || !activeIds.has(ev.lead_id)) continue;
     const s = eventStage(ev.activity_type, ev.metadata);
-    if (s) stageSets[s].add(ev.lead_id);
+    if (s) stageSets[s]?.add(ev.lead_id);
   }
-  const reached = FUNNEL.map((_, i) => (i === 0 ? L.length : stageSets[i].size));
+  const reached = FUNNEL.map((_, i) => (i === 0 ? L.length : (stageSets[i]?.size ?? 0)));
   const endOfToday = new Date(); endOfToday.setHours(23, 59, 59, 999);
   const due = L.filter((l) => l.next_followup_at && new Date(l.next_followup_at) <= endOfToday && !["convertido", "perdido", "nao_qualificado"].includes(l.status))
     .sort((a, b) => new Date(a.next_followup_at!).getTime() - new Date(b.next_followup_at!).getTime());
