@@ -228,7 +228,7 @@ function LeadPage() {
           <Notes leadId={lead.id} />
         </div>
         <div className="space-y-5">
-          <LeadScriptCard leadId={lead.id} />
+          <LeadScriptCard lead={lead} />
           <FollowUp lead={lead} onSaved={refresh} />
           <Tags leadId={lead.id} />
           <Timeline leadId={lead.id} />

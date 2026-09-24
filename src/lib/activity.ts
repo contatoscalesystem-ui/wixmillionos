@@ -11,6 +11,7 @@ export const ACTIVITY_LABEL: Record<string, string> = {
   lead_updated: "Lead atualizado",
   status_changed: "Status alterado",
   whatsapp_opened: "WhatsApp aberto",
+  whatsapp_message_opened: "Script — mensagem aberta no WhatsApp",
   approach_generated: "Abordagem gerada",
   approach_sent: "Abordagem enviada",
   note_created: "Nota criada",

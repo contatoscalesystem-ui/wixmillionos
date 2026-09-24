@@ -72,11 +72,13 @@ export function PriorityBadge({ p }: { p?: string | null }) {
 export function StatusBadge({ s }: { s?: string | null }) {
   const strong = s === "convertido" || s === "interessado" || s === "link_enviado";
   const muted = s === "perdido" || s === "nao_qualificado";
+  const noInterest = s === "nao_tem_interesse";
   return (
     <span className={cn(
       "inline-flex whitespace-nowrap rounded-full border px-2 py-0.5 text-xs font-medium",
       strong && "border-gold/50 bg-gold-soft",
       muted && "text-muted-foreground",
+      noInterest && "border-destructive/20 bg-destructive/5 text-muted-foreground",
     )}>{statusLabel(s)}</span>
   );
 }
