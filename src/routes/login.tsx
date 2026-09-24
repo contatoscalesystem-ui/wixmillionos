@@ -24,6 +24,8 @@ function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
+  const [show, setShow] = useState(false);
+  const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && session && checked) navigate({ to: statusPath(account?.status, account?.must_change_password) });
@@ -32,13 +34,14 @@ function LoginPage() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setBusy(true);
+    setErr(null);
     try {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
       void supabase.rpc("log_event" as never, { _type: "LOGIN" } as never);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "";
-      toast.error(
+      setErr(
         /invalid login/i.test(msg) ? "E-mail ou senha incorretos."
           : /not confirmed/i.test(msg) ? "Confirme seu e-mail antes de entrar."
           : "Não foi possível entrar. Tente novamente.",
