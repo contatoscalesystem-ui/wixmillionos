@@ -69,7 +69,7 @@ export function ScriptPlaybook({ lead, scope = "workspace", editable = false, on
   const next = () => {
     if (!sel) return;
     const i = stages.indexOf(sel);
-    if (stages[i + 1]) setSelId(stages[i + 1].id);
+    if (stages[i + 1]) setSelId(stages[i + 1]!.id);
   };
   const complete = async () => {
     if (!lead || !sel) return;
@@ -332,7 +332,7 @@ function StageDialog({ value, scope, onClose }: { value: Partial<ScriptStage> | 
     setBusy(true);
     const { error } = f.id
       ? await supabase.from("script_stages").update(payload).eq("id", f.id)
-      : await supabase.from("script_stages").insert(scope === "global" ? { ...payload, workspace_id: null } : payload);
+      : await supabase.from("script_stages").insert((scope === "global" ? { ...payload, workspace_id: null } : payload) as never);
     setBusy(false);
     if (error) return toast.error(friendlyError(error));
     toast.success("Etapa salva.");
@@ -404,7 +404,7 @@ function ObjectionDialog({ value, scope, onClose }: { value: Partial<ScriptObjec
     };
     const { error } = f.id
       ? await supabase.from("script_objections").update(payload).eq("id", f.id)
-      : await supabase.from("script_objections").insert(scope === "global" ? { ...payload, workspace_id: null } : payload);
+      : await supabase.from("script_objections").insert((scope === "global" ? { ...payload, workspace_id: null } : payload) as never);
     if (error) return toast.error(friendlyError(error));
     toast.success("Objeção salva.");
     invalidate("script_objections"); onClose();
