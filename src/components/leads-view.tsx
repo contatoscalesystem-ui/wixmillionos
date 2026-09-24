@@ -228,7 +228,7 @@ export function LeadsView({ forceKanban }: { forceKanban?: boolean }) {
                           {wa && l.whatsapp_confirmed && <Button asChild size="icon" variant="ghost" aria-label="WhatsApp"><a href={`https://wa.me/${wa}`} target="_blank" rel="noreferrer"><MessageCircle className="h-4 w-4" /></a></Button>}
                           <Button size="icon" variant="ghost" aria-label="Editar" onClick={() => setForm({ open: true, lead: l })}><Pencil className="h-4 w-4" /></Button>
                           <Button size="icon" variant="ghost" aria-label={l.archived_at ? "Restaurar" : "Arquivar"} title={l.archived_at ? "Restaurar" : "Arquivar"} onClick={() => setDel(l)}>{l.archived_at ? <ArchiveRestore className="h-4 w-4" /> : <Archive className="h-4 w-4" />}</Button>
-                          {isAdmin && <Button size="icon" variant="ghost" aria-label="Excluir definitivamente" title="Excluir definitivamente" onClick={() => setHardDel(l)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
+                          {<Button size="icon" variant="ghost" aria-label="Excluir definitivamente" title="Excluir definitivamente" onClick={() => setHardDel(l)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
                         </td>
                       </tr>
                     );
