@@ -29,7 +29,7 @@ export default defineConfig({
         navigateFallback: null,
         cleanupOutdatedCaches: true,
         clientsClaim: true,
-        skipWaiting: false,
+        skipWaiting: true,
         runtimeCaching: [
           {
             urlPattern: ({ request, url }) =>

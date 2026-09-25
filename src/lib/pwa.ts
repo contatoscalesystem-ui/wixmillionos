@@ -35,26 +35,16 @@ export function initPWA() {
   window.addEventListener("appinstalled", () => { deferred = null; emit(); });
   if (!("serviceWorker" in navigator)) return;
   if (refused()) { void unregisterAppSW(); return; }
+  const hadController = !!navigator.serviceWorker.controller;
   navigator.serviceWorker.register("/sw.js", { scope: "/" }).then((reg) => {
-    const onWaiting = (w: ServiceWorker) => {
-      needRefresh = true;
-      applyUpdate = () => w.postMessage({ type: "SKIP_WAITING" });
-      emit();
-    };
-    if (reg.waiting && navigator.serviceWorker.controller) onWaiting(reg.waiting);
-    reg.addEventListener("updatefound", () => {
-      const w = reg.installing;
-      w?.addEventListener("statechange", () => {
-        if (w.state === "installed" && navigator.serviceWorker.controller) onWaiting(w);
-      });
-    });
     setInterval(() => reg.update().catch(() => {}), 60 * 60 * 1000);
   }).catch(() => {});
-  let reloaded = false;
+  // New version activated: old cached files are cleaned by the worker; ask to reload.
   navigator.serviceWorker.addEventListener("controllerchange", () => {
-    if (reloaded || !needRefresh) return;
-    reloaded = true;
-    location.reload();
+    if (!hadController) return;
+    needRefresh = true;
+    applyUpdate = () => location.reload();
+    emit();
   });
 }
 
