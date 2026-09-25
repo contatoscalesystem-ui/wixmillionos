@@ -27,4 +27,12 @@ export const ACTIVITY_LABEL: Record<string, string> = {
   script_sent: "Script — mensagem enviada",
   script_stage_done: "Script — etapa concluída",
   script_stage_undone: "Script — etapa desmarcada",
+  call_opened: "Ligação iniciada",
+  call_answered: "Ligação atendida",
+  call_no_answer: "Não atendeu",
+  call_busy: "Ligação ocupada",
+  call_invalid_number: "Número inválido",
+  call_callback: "Pediu retorno",
+  call_not_interested: "Não tem interesse (ligação)",
+  call_interested: "Interessado (ligação)",
 };

@@ -83,6 +83,16 @@ export function normalizeBrPhone(raw?: string | null): string | null {
   if (d.length === 10 || d.length === 11) return "55" + d;
   return d.length >= 8 ? d : null;
 }
+/** Call format 015 + DDD + number: "+55 (75) 99980-1328" -> "01575999801328". Never duplicates 55 or 015. */
+export function callNumber(raw?: string | null): string | null {
+  if (!raw) return null;
+  let d = raw.replace(/\D/g, "");
+  if (d.startsWith("015") && (d.length === 13 || d.length === 14)) d = d.slice(3);
+  if (d.startsWith("55") && (d.length === 12 || d.length === 13)) d = d.slice(2);
+  d = d.replace(/^0+/, "");
+  if (d.length !== 10 && d.length !== 11) return null;
+  return "015" + d;
+}
 export const waLink = (phone: string, text?: string) =>
   `https://wa.me/${phone}${text ? `?text=${encodeURIComponent(text)}` : ""}`;
 
