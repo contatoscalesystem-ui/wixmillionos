@@ -15,6 +15,7 @@ import { ConfirmDialog, StrongConfirmDialog, EmptyState, Info, PriorityBadge, Sc
 import { leadDeleteBlocker } from "@/lib/deletes";
 import { LeadForm } from "@/components/lead-form";
 import { LeadScriptCard } from "@/components/lead-script-card";
+import { CallButton } from "@/components/call-button";
 import { LEAD_STATUS, fillTemplate, fmtDate, friendlyError, normalizeBrPhone, statusLabel, waLink, websiteLabel, type Lead, type LeadStatus } from "@/lib/crm";
 import { ACTIVITY_LABEL, logActivity } from "@/lib/activity";
 import { useAuth } from "@/hooks/use-auth";
@@ -168,6 +169,7 @@ function LeadPage() {
         </div>
         <div className="mt-4 flex flex-wrap gap-2">
           {waNum && <Button size="sm" className="bg-gold text-gold-foreground hover:bg-gold/90" onClick={() => openWa()}><MessageCircle className="mr-1 h-4 w-4" />Abrir WhatsApp</Button>}
+          <CallButton lead={lead} onChanged={refresh} />
           {lead.instagram_url && <Button asChild size="sm" variant="outline"><a href={lead.instagram_url} target="_blank" rel="noreferrer"><Instagram className="mr-1 h-4 w-4" />Instagram</a></Button>}
           {lead.google_maps_url && <Button asChild size="sm" variant="outline"><a href={lead.google_maps_url} target="_blank" rel="noreferrer"><MapPin className="mr-1 h-4 w-4" />Google Maps</a></Button>}
           {lead.website_url && <Button asChild size="sm" variant="outline"><a href={lead.website_url} target="_blank" rel="noreferrer"><Globe className="mr-1 h-4 w-4" />Site</a></Button>}
@@ -269,7 +271,7 @@ function Approach({ lead, waNum, openWa, onSent }: { lead: Lead; waNum: string |
     const { error } = await supabase.from("leads").update({ status: "abordagem_enviada", last_contact_at: new Date().toISOString() }).eq("id", lead.id);
     setBusy(false);
     if (error) return toast.error(friendlyError(error));
-    await logActivity(lead.id, "approach_sent", "Abordagem inicial enviada", { from: lead.status });
+    await logActivity(lead.id, "approach_sent", "Abordagem inicial enviada", { from: lead.status, channel: "whatsapp" });
     toast.success("Abordagem registrada.");
     onSent();
   };
@@ -291,6 +293,7 @@ function Approach({ lead, waNum, openWa, onSent }: { lead: Lead; waNum: string |
               <div className="flex flex-wrap gap-2">
                 <Button size="sm" variant="outline" onClick={async () => { await navigator.clipboard.writeText(text); toast.success("Mensagem copiada."); }}><Copy className="mr-1 h-4 w-4" />Copiar</Button>
                 {waNum && <Button size="sm" variant="outline" onClick={() => openWa(text)}><MessageCircle className="mr-1 h-4 w-4" />Abrir no WhatsApp</Button>}
+                <CallButton lead={lead} onChanged={onSent} showCopy={false} />
                 <Button size="sm" className="bg-gold text-gold-foreground hover:bg-gold/90" disabled={busy} onClick={markSent}><Send className="mr-1 h-4 w-4" />Marcar como enviada</Button>
               </div>
             </>
