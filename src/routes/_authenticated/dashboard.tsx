@@ -194,7 +194,7 @@ function Dashboard() {
 }
 
 function IconBox({ icon: Icon }: { icon: LucideIcon }) {
-  return <div className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-[10px] bg-[#C39A39]/[0.08]"><Icon className="h-5 w-5 stroke-[1.6] text-[#C39A39]" /></div>;
+  return <div className="flex h-9 w-9 sm:h-[42px] sm:w-[42px] shrink-0 items-center justify-center rounded-[10px] bg-[#C39A39]/[0.08]"><Icon className="h-5 w-5 stroke-[1.6] text-[#C39A39]" /></div>;
 }
 function PanelTitle({ icon, children }: { icon: LucideIcon; children: ReactNode }) {
   return (
