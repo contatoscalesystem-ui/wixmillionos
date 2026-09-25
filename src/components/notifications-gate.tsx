@@ -1,20 +1,10 @@
 import { useEffect, useState } from "react";
-import { Info, AlertTriangle, AlertOctagon, Wrench, Sparkles } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { rpc } from "@/lib/admin";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import { NoticeModal, type NoticeData } from "@/components/notice-modal";
 
-type Note = { id: string; title: string; message: string; type: "information" | "warning" | "important" | "maintenance" | "welcome" };
-
-const STYLE: Record<Note["type"], { icon: typeof Info; label: string; cls: string }> = {
-  information: { icon: Info, label: "Informação", cls: "text-foreground" },
-  warning: { icon: AlertTriangle, label: "Aviso", cls: "text-gold" },
-  important: { icon: AlertOctagon, label: "Importante", cls: "text-destructive" },
-  maintenance: { icon: Wrench, label: "Manutenção", cls: "text-muted-foreground" },
-  welcome: { icon: Sparkles, label: "Boas-vindas", cls: "text-gold" },
-};
+type Note = NoticeData & { id: string };
 
 /** Shows admin messages (and the one-time welcome) as a queue of pop-ups. Never blocks navigation on failure. */
 export function NotificationsGate() {
@@ -29,7 +19,7 @@ export function NotificationsGate() {
       try {
         const [{ data: notes }, { data: receipts }] = await Promise.all([
           // Filter in the query (Super Admin's RLS can read all rows; they must still only receive their own).
-          supabase.from("admin_notifications" as never).select("id,title,message,type,created_at")
+          supabase.from("admin_notifications" as never).select("id,title,message,type,extra_title,extra_message,created_at")
             .or(`target_type.eq.all,and(target_type.eq.specific_user,target_user_id.eq.${uid})`)
             .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
             .order("created_at"),
@@ -49,7 +39,7 @@ export function NotificationsGate() {
     return () => { alive = false; };
   }, [uid, account?.status]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const current = queue[0];
+  const current = queue[0] ?? null;
   useEffect(() => {
     if (!current || current.id === "welcome" || !uid) return;
     void supabase.from("notification_receipts" as never).upsert(
@@ -69,25 +59,5 @@ export function NotificationsGate() {
     } catch { /* ignore */ }
   };
 
-  if (!current) return null;
-  const st = STYLE[current.type] ?? STYLE.information;
-  const Icon = st.icon;
-  return (
-    <Dialog open onOpenChange={(o) => { if (!o) void ack(); }}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <div className={`flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] ${st.cls}`}>
-            <Icon className="h-4 w-4" /> {st.label}
-          </div>
-          <DialogTitle className="text-xl">{current.title}</DialogTitle>
-          <DialogDescription className="whitespace-pre-line text-sm text-foreground/80">{current.message}</DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <Button className="bg-gold text-gold-foreground hover:bg-gold/90" onClick={() => void ack()}>
-            {current.id === "welcome" ? "Começar" : "Entendi"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
+  return <NoticeModal key={current?.id} notice={current} onAck={() => void ack()} actionLabel={current?.id === "welcome" ? "Começar" : "Entendi"} />;
 }
