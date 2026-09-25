@@ -8,6 +8,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { fmtDate, sumByCurrency, type LeadStatus, type Tables } from "@/lib/crm";
+const fmtUsd = (v: number) => "US$ " + v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 import { ACTIVITY_LABEL } from "@/lib/activity";
 import { profileName, useProfiles } from "@/lib/queries";
 import { DashboardFilters, periodRange, validateDashSearch, type DashFilters } from "@/components/dashboard-filters";
@@ -158,8 +159,8 @@ function Dashboard() {
     ["Em recuperação", count("recuperacao") + count("sem_resposta"), Clock],
     ["Sites em produção", sitesProd, Layers],
     ["Sites publicados", sitesPub, Globe],
-    ["Comissão prevista", sumByCurrency(forecast, com), Banknote, true],
-    ["Comissão recebida", sumByCurrency(received, com), Coins, true],
+    ["Comissão prevista", fmtUsd(forecast.reduce((s, e) => s + Number(e.commission_amount ?? 0), 0)), Banknote, true],
+    ["Comissão recebida", fmtUsd(received.reduce((s, e) => s + Number(e.commission_amount ?? 0), 0)), Coins, true],
   ];
 
   return (
