@@ -58,3 +58,19 @@ export const useLeadProgress = (leadId?: string) =>
 export function currentStage(stages: ScriptStage[], done: Set<string>) {
   return stages.filter((s) => s.is_active).find((s) => !done.has(s.id)) ?? null;
 }
+
+export const AFFILIATE_VAR = "[LINK_AFILIADO]";
+
+/** Workspace affiliate link (per workspace, RLS-scoped). */
+export const useAffiliateLink = () =>
+  useQuery({
+    queryKey: ["workspace_settings"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("workspace_settings" as never).select("*").maybeSingle();
+      if (error) throw error;
+      return (data as { workspace_id: string; affiliate_link_name: string; affiliate_link: string | null } | null) ?? null;
+    },
+  });
+
+export const applyAffiliate = (t: string, link?: string | null) =>
+  link?.trim() ? t.replaceAll(AFFILIATE_VAR, link.trim()) : t;

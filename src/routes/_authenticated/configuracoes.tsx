@@ -1,6 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { z } from "zod";
+import { Copy, ExternalLink } from "lucide-react";
+import { useAffiliateLink } from "@/lib/script";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +17,7 @@ import { friendlyError } from "@/lib/crm";
 import { useInvalidate, useTemplates } from "@/lib/queries";
 
 export const Route = createFileRoute("/_authenticated/configuracoes")({
+  validateSearch: z.object({ tab: z.string().optional() }),
   head: () => ({
     meta: [
       { title: "Configurações — WIX MILLION OS" },
@@ -30,18 +34,20 @@ function Box({ children }: { children: React.ReactNode }) {
 }
 
 function Config() {
+  const { tab } = Route.useSearch();
   return (
     <div>
       <PageHeader title="Configurações" />
-      <Tabs defaultValue="perfil">
+      <Tabs defaultValue={tab ?? "perfil"}>
         <TabsList className="flex h-auto flex-wrap">
-          {["perfil", "equipe", "templates", "whatsapp", "integracoes", "valores"].map((t) => (
-            <TabsTrigger key={t} value={t} className="capitalize">{t === "integracoes" ? "Integrações" : t === "whatsapp" ? "WhatsApp" : t}</TabsTrigger>
+          {["perfil", "equipe", "templates", "link", "whatsapp", "integracoes", "valores"].map((t) => (
+            <TabsTrigger key={t} value={t} className="capitalize">{t === "link" ? "Link de afiliado" : t === "integracoes" ? "Integrações" : t === "whatsapp" ? "WhatsApp" : t}</TabsTrigger>
           ))}
         </TabsList>
         <TabsContent value="perfil"><Profile /></TabsContent>
         <TabsContent value="equipe"><Box><p className="text-sm text-muted-foreground">Membros, convites e permissões ficam na página de Equipe.</p><Button asChild className="mt-3" variant="outline"><Link to="/configuracoes/equipe">Abrir Equipe</Link></Button></Box></TabsContent>
         <TabsContent value="templates"><Templates /></TabsContent>
+        <TabsContent value="link"><Affiliate /></TabsContent>
         <TabsContent value="whatsapp">
           <Box>
             <div className="flex items-center gap-3"><span className="font-semibold">WhatsApp</span><span className="rounded-full border px-2 py-0.5 text-xs text-muted-foreground">Não conectado</span></div>
@@ -148,6 +154,44 @@ function Templates() {
           </ul>
           <Button className="mt-3" variant="outline" onClick={() => setEdit({ name: "", stage: "", content: "", is_active: true })}>Novo template</Button>
         </>
+      )}
+    </Box>
+  );
+}
+
+function Affiliate() {
+  const { profile } = useAuth();
+  const { data, isLoading } = useAffiliateLink();
+  const invalidate = useInvalidate();
+  const [name, setName] = useState("Link de afiliado");
+  const [url, setUrl] = useState("");
+  useEffect(() => { setName(data?.affiliate_link_name ?? "Link de afiliado"); setUrl(data?.affiliate_link ?? ""); }, [data]);
+  const saved = data?.affiliate_link?.trim() || "";
+  const save = async () => {
+    const u = url.trim();
+    if (u && !/^https?:\/\/\S+$/i.test(u)) return toast.error("Informe uma URL válida, começando com http:// ou https://.");
+    if (!profile?.workspace_id) return toast.error("Espaço não encontrado.");
+    const { error } = await supabase.from("workspace_settings" as never).upsert({ workspace_id: profile.workspace_id, affiliate_link_name: name.trim() || "Link de afiliado", affiliate_link: u || null } as never);
+    if (error) return toast.error(friendlyError(error));
+    toast.success("Link salvo.");
+    invalidate("workspace_settings");
+  };
+  const copy = async () => {
+    try { await navigator.clipboard.writeText(saved); toast.success("Link copiado."); } catch { toast.error("Não foi possível copiar."); }
+  };
+  return (
+    <Box>
+      {isLoading ? <p className="text-sm text-muted-foreground">Carregando...</p> : (
+        <div className="grid max-w-xl gap-3">
+          <div className="space-y-1.5"><Label>Nome</Label><Input value={name} onChange={(e) => setName(e.target.value)} /></div>
+          <div className="space-y-1.5"><Label>URL</Label><Input value={url} placeholder="https://..." onChange={(e) => setUrl(e.target.value)} /></div>
+          <p className="text-xs text-muted-foreground">Use a variável [LINK_AFILIADO] nas mensagens do Script Comercial para inserir este link automaticamente.</p>
+          <div className="flex flex-wrap gap-2">
+            <Button onClick={save}>Salvar link</Button>
+            {saved && <Button variant="outline" onClick={copy}><Copy className="mr-1.5 h-4 w-4" />Copiar link</Button>}
+            {saved && <Button asChild variant="outline"><a href={saved} target="_blank" rel="noopener noreferrer"><ExternalLink className="mr-1.5 h-4 w-4" />Abrir link</a></Button>}
+          </div>
+        </div>
       )}
     </Box>
   );
