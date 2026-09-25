@@ -145,6 +145,8 @@ export type Database = {
           created_at: string
           created_by: string
           expires_at: string | null
+          extra_message: string | null
+          extra_title: string | null
           id: string
           message: string
           show_once: boolean
@@ -157,6 +159,8 @@ export type Database = {
           created_at?: string
           created_by?: string
           expires_at?: string | null
+          extra_message?: string | null
+          extra_title?: string | null
           id?: string
           message: string
           show_once?: boolean
@@ -169,6 +173,8 @@ export type Database = {
           created_at?: string
           created_by?: string
           expires_at?: string | null
+          extra_message?: string | null
+          extra_title?: string | null
           id?: string
           message?: string
           show_once?: boolean
