@@ -79,11 +79,12 @@ function Dashboard() {
     if (error) throw error;
     return data as { id: string; status: LeadStatus }[];
   } });
-  // Follow-ups: always today only; period does not apply.
-  const followups = useQuery({ ...opts, queryKey: ["leads", "dash-followups", key], queryFn: async () => {
+  // Follow-ups scheduled inside the selected period (open-ended periods end today).
+  const followups = useQuery({ ...opts, queryKey: ["leads", "dash-followups", key, range.from, range.to], queryFn: async () => {
     const end = new Date(); end.setHours(23, 59, 59, 999);
     const { data, error } = await leadFilters(supabase.from("leads").select("id, company_name, next_followup_at, status"), f)
-      .lte("next_followup_at", end.toISOString()).not("status", "in", "(convertido,perdido,nao_qualificado)")
+      .gte("next_followup_at", range.from).lt("next_followup_at", range.to ?? end.toISOString())
+      .not("status", "in", "(convertido,perdido,nao_qualificado)")
       .order("next_followup_at").limit(12);
     if (error) throw error;
     return data as { id: string; company_name: string; next_followup_at: string }[];
