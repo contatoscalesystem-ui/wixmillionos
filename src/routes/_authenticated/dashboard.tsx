@@ -104,23 +104,18 @@ function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h1 className="text-[32px] font-extrabold leading-tight tracking-tight text-[#171717]">Dashboard</h1>
-          <p className="mt-1 text-[15px] text-[#777771]">Central de operação comercial — dados em tempo real do banco.</p>
-        </div>
-        <Link to="/leads" className="db-gold-btn inline-flex h-11 items-center gap-2 self-start rounded-[10px] px-5 text-sm font-semibold text-white">
-          <Users className="h-4 w-4" /> Ver leads
-        </Link>
+      <div>
+        <h1 className="text-[26px] font-extrabold leading-tight tracking-tight text-[#171717] sm:text-[32px]">Dashboard</h1>
+        <p className="mt-1 max-w-[36ch] text-[14px] text-[#777771] sm:max-w-none sm:text-[15px]">Central de operação comercial — dados em tempo real do banco.</p>
       </div>
 
-      <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-5">
+      <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 sm:gap-3.5 lg:grid-cols-4 2xl:grid-cols-5">
         {stats.map(([label, value, Icon, gold]) => (
-          <div key={label} className="db-card flex min-h-[86px] items-center gap-4 p-4">
+          <div key={label} className="db-card flex min-h-[64px] items-center gap-3 p-3 sm:min-h-[86px] sm:gap-4 sm:p-4">
             <IconBox icon={Icon} />
             <div className="min-w-0">
               <div className="truncate text-[12.5px] text-[#777771]">{label}</div>
-              <div className={`mt-0.5 truncate text-[24px] font-bold leading-tight tabular-nums ${gold ? "text-[#C39A39]" : "text-[#171717]"}`}>{value}</div>
+              <div className={`mt-0.5 truncate text-[20px] font-bold leading-tight tabular-nums sm:text-[24px] ${gold ? "text-[#C39A39]" : "text-[#171717]"}`}>{value}</div>
             </div>
           </div>
         ))}
@@ -199,7 +194,7 @@ function Dashboard() {
 }
 
 function IconBox({ icon: Icon }: { icon: LucideIcon }) {
-  return <div className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-[10px] bg-[#C39A39]/[0.08]"><Icon className="h-5 w-5 stroke-[1.6] text-[#C39A39]" /></div>;
+  return <div className="flex h-9 w-9 sm:h-[42px] sm:w-[42px] shrink-0 items-center justify-center rounded-[10px] bg-[#C39A39]/[0.08]"><Icon className="h-5 w-5 stroke-[1.6] text-[#C39A39]" /></div>;
 }
 function PanelTitle({ icon, children }: { icon: LucideIcon; children: ReactNode }) {
   return (

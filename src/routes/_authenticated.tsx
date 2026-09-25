@@ -118,15 +118,19 @@ function AppLayout() {
   return (
     <div className="min-h-screen">
       <aside className="fixed inset-y-0 left-0 hidden w-[272px] lg:block">{sidebar}</aside>
-      <header className="sticky top-0 z-30 flex items-center justify-between border-b bg-background/95 px-4 py-3 backdrop-blur lg:hidden">
-        <div className="font-extrabold">WIX MILLION <span className="text-gold">OS</span></div>
-        <button aria-label="Abrir menu" onClick={() => setOpen(true)}><Menu className="h-5 w-5" /></button>
+      <header className="sticky top-0 z-40 flex items-center gap-3 border-b bg-background/95 px-4 pb-3 backdrop-blur lg:hidden"
+        style={{ paddingTop: "max(18px, calc(env(safe-area-inset-top) + 10px))" }}>
+        <button aria-label="Abrir menu" onClick={() => setOpen(true)}
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[10px] border border-black/[0.08] bg-white text-[#171717] transition-colors active:bg-[#C39A39]/15">
+          <Menu className="h-5 w-5" />
+        </button>
+        <div className="min-w-0 max-w-[190px] truncate text-[17px] font-extrabold tracking-tight">WIX MILLION <span className="text-gold">OS</span></div>
       </header>
       {open && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div className="absolute inset-0 bg-foreground/50" onClick={() => setOpen(false)} />
-          <div className="wm-drawer absolute inset-y-0 left-0 w-[280px] max-w-[85vw]">
-            <button aria-label="Fechar menu" className="absolute right-3 top-5 z-10 text-[#D5D5D2]" onClick={() => setOpen(false)}><X className="h-5 w-5" /></button>
+          <div className="wm-drawer absolute inset-y-0 left-0 w-[280px] max-w-[85vw]" style={{ paddingTop: "env(safe-area-inset-top)" }}>
+            <button aria-label="Fechar menu" className="absolute right-2 z-10 flex h-11 w-11 items-center justify-center text-[#D5D5D2]" style={{ top: "calc(env(safe-area-inset-top) + 8px)" }} onClick={() => setOpen(false)}><X className="h-5 w-5" /></button>
             {sidebar}
           </div>
         </div>
