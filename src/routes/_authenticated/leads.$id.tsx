@@ -157,24 +157,24 @@ function LeadPage() {
               <span className="text-muted-foreground">Responsável: <span className="text-foreground">{profileName(profiles, lead.assigned_to)}</span></span>
             </div>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="grid w-full grid-cols-[1fr_1fr_auto] gap-2 sm:flex sm:w-auto sm:flex-wrap [&>button]:min-h-11 sm:[&>button]:min-h-9">
             <Select value={lead.status} onValueChange={(v) => changeStatus(v as LeadStatus)}>
-              <SelectTrigger className="h-9 w-48"><SelectValue /></SelectTrigger>
+              <SelectTrigger className="col-span-3 h-11 w-full sm:h-9 sm:w-48"><SelectValue /></SelectTrigger>
               <SelectContent>{LEAD_STATUS.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
             </Select>
             <Button variant="outline" size="sm" onClick={() => setEdit(true)}><Pencil className="mr-1 h-4 w-4" />Editar</Button>
             <Button variant="outline" size="sm" onClick={() => setArchOpen(true)}>{lead.archived_at ? <><ArchiveRestore className="mr-1 h-4 w-4" />Restaurar</> : <><Archive className="mr-1 h-4 w-4" />Arquivar</>}</Button>
-            {<Button variant="outline" size="sm" aria-label="Excluir definitivamente" title="Excluir definitivamente" onClick={() => setDel(true)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
+            {<Button variant="outline" size="sm" className="w-11 sm:w-auto" aria-label="Excluir definitivamente" title="Excluir definitivamente" onClick={() => setDel(true)}><Trash2 className="h-4 w-4 text-destructive" /></Button>}
           </div>
         </div>
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="mt-4 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap [&>*]:min-h-11 sm:[&>*]:min-h-9 [&>*]:min-w-0">
           {waNum && <Button size="sm" className="bg-gold text-gold-foreground hover:bg-gold/90" onClick={() => openWa()}><MessageCircle className="mr-1 h-4 w-4" />Abrir WhatsApp</Button>}
           <CallButton lead={lead} onChanged={refresh} />
           {lead.instagram_url && <Button asChild size="sm" variant="outline"><a href={lead.instagram_url} target="_blank" rel="noreferrer"><Instagram className="mr-1 h-4 w-4" />Instagram</a></Button>}
           {lead.google_maps_url && <Button asChild size="sm" variant="outline"><a href={lead.google_maps_url} target="_blank" rel="noreferrer"><MapPin className="mr-1 h-4 w-4" />Google Maps</a></Button>}
           {lead.website_url && <Button asChild size="sm" variant="outline"><a href={lead.website_url} target="_blank" rel="noreferrer"><Globe className="mr-1 h-4 w-4" />Site</a></Button>}
           {lead.scheduling_url && <Button asChild size="sm" variant="outline"><a href={lead.scheduling_url} target="_blank" rel="noreferrer"><Calendar className="mr-1 h-4 w-4" />Agendamento</a></Button>}
-          {lead.status !== "convertido" && <Button size="sm" variant="outline" className="border-gold" onClick={() => setConvertOpen(true)}>Converter em cliente</Button>}
+          {lead.status !== "convertido" && <Button size="sm" variant="outline" className="col-span-2 border-gold" onClick={() => setConvertOpen(true)}>Converter em cliente</Button>}
         </div>
         {waNum && !lead.whatsapp_confirmed && (
           <p className="mt-3 flex items-center gap-1.5 text-xs text-muted-foreground"><AlertTriangle className="h-3.5 w-3.5 text-gold" />WhatsApp não confirmado.{!lead.whatsapp && " Será usado o telefone como tentativa."}</p>
