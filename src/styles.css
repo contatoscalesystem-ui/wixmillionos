@@ -192,3 +192,26 @@
 .wm-hscroll::-webkit-scrollbar-thumb { background: rgba(17,17,17,.22); border-radius: 8px; }
 .wm-hscroll::-webkit-scrollbar-thumb:hover { background: rgba(17,17,17,.4); }
 .wm-hscroll::-webkit-scrollbar-track { background: transparent; }
+
+/* Notice modal */
+.nm-overlay { background: rgba(0,0,0,0.45); backdrop-filter: blur(3px); animation: nm-fade 220ms ease-out; }
+.nm-overlay[data-state="closed"] { animation: nm-fade-out 160ms ease-in forwards; }
+.nm-card { background: #FFFFFF; border: 1px solid rgba(198,154,50,0.18); box-shadow: 0 24px 60px rgba(0,0,0,0.22); animation: nm-in 240ms cubic-bezier(.2,.8,.2,1); }
+.nm-card[data-state="closed"] { animation: nm-fade-out 160ms ease-in forwards; }
+.nm-topbar { background: linear-gradient(90deg, #8F6B1E, #DAB65C, #8F6B1E); }
+.nm-btn { background: linear-gradient(90deg, #A9801F 0%, #C69A32 55%, #B08624 100%); box-shadow: 0 8px 22px rgba(198,154,50,0.28); transition: filter 180ms ease, transform 180ms ease; }
+.nm-btn:hover { filter: brightness(1.06); transform: translateY(-1px); }
+.nm-btn:focus-visible { outline: 2px solid #0D0D0D; outline-offset: 2px; }
+.nm-icon { border: 1px solid currentColor; }
+.nm-icon.nm-blue { color: #2B5FB8; background: #EAF1FC; border-color: #C9DAF5; }
+.nm-icon.nm-amber { color: #B8661A; background: #FDF1E3; border-color: #F3D6B3; }
+.nm-icon.nm-green { color: #2F7A45; background: #E6F4EA; border-color: #C3E3CC; }
+.nm-icon.nm-purple { color: #6B46B8; background: #F0EAFB; border-color: #D9CCF3; }
+.nm-icon.nm-gold { color: #A9801F; background: #FBF4E2; border-color: #E8D29C; }
+.nm-icon.nm-red { color: #B3261E; background: #FCEAE8; border-color: #F2C7C3; }
+.nm-icon.nm-gray { color: #4A4A4A; background: #F1F1EE; border-color: #DDDDD8; }
+.nm-label { color: #1A1A1A; }
+@keyframes nm-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes nm-fade-out { from { opacity: 1; } to { opacity: 0; } }
+@keyframes nm-in { from { opacity: 0; transform: translate(-50%, -50%) scale(.96); } to { opacity: 1; transform: translate(-50%, -50%) scale(1); } }
+@media (prefers-reduced-motion: reduce) { .nm-overlay, .nm-card, .nm-btn { animation: none !important; transition: none !important; } }

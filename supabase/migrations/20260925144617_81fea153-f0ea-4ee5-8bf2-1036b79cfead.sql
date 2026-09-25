@@ -1,0 +1,3 @@
+ALTER TABLE public.admin_notifications DROP CONSTRAINT IF EXISTS admin_notifications_type_check;
+ALTER TABLE public.admin_notifications ADD CONSTRAINT admin_notifications_type_check CHECK (type in ('information','warning','important','maintenance','success','update','news','call','whatsapp','security','financial','system','error'));
+ALTER TABLE public.admin_notifications ADD COLUMN IF NOT EXISTS extra_title text, ADD COLUMN IF NOT EXISTS extra_message text;
