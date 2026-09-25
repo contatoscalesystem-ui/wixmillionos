@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import {
-  Users, UserPlus, Phone, Send, Reply, Target, Link2, BarChart3, Clock, Layers, Globe,
+  Users, UserPlus, Phone, Send, Target, Link2, BarChart3, Clock, Layers, Globe,
   Banknote, Coins, CalendarDays, FileText, Info, type LucideIcon,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,19 +26,19 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 // Funnel stage represented by a real recorded event (1 Abordagem … 5 Conversão). Status transitions count only
 // for the status they moved TO — a later status never implies earlier stages.
 const STATUS_STAGE: Partial<Record<string, number>> = {
-  abordagem_enviada: 1, respondeu: 2, interessado: 3, link_enviado: 4, convertido: 5,
+  abordagem_enviada: 1, interessado: 2, link_enviado: 3, convertido: 4,
 };
 function eventStage(type: string, metadata: unknown): number | null {
   if (type === "approach_sent") return 1;
-  if (type === "link_sent") return 4;
-  if (type === "converted") return 5;
+  if (type === "link_sent") return 3;
+  if (type === "converted") return 4;
   if (type === "status_changed") {
     const to = (metadata as { to?: string } | null)?.to;
     return (to && STATUS_STAGE[to]) || null;
   }
   return null;
 }
-const FUNNEL = ["Leads", "Abordagem", "Resposta", "Interesse", "Link", "Conversão"];
+const FUNNEL = ["Leads", "Abordagem", "Interesse", "Link", "Conversão"];
 
 function Dashboard() {
   const leads = useLeads();
@@ -91,7 +91,6 @@ function Dashboard() {
     ["Novos", count("novo"), UserPlus],
     ["Prontos para contato", count("pronto_contato"), Phone],
     ["Abordagens enviadas", count("abordagem_enviada"), Send],
-    ["Respondeu", count("respondeu"), Reply],
     ["Interessados", count("interessado"), Target],
     ["Links enviados", count("link_enviado"), Link2],
     ["Convertidos", count("convertido"), BarChart3, true],
