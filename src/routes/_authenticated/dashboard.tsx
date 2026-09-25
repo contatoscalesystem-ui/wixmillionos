@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import {
   Users, UserPlus, Phone, Send, Target, Link2, BarChart3, Clock, Layers, Globe,
   Banknote, Coins, CalendarDays, FileText, Info, type LucideIcon,
@@ -100,6 +100,16 @@ function Dashboard() {
     if (error) throw error;
     return data as { lead_id: string; activity_type: string; metadata: unknown }[];
   } });
+  // Call channel: real call_* events in the period.
+  const calls = useQuery({ ...opts, queryKey: ["activities", "dash-calls", key, range.from, range.to], queryFn: async () => {
+    let q: any = supabase.from("lead_activities").select("lead_id, activity_type, leads!inner(id)").like("activity_type", "call\\_%");
+    q = leadFilters(q, f, "leads.", false);
+    if (f.resp) q = q.eq("user_id", f.resp);
+    const { data, error } = await inRange(q, "created_at", range).limit(100000);
+    if (error) throw error;
+    return data as { lead_id: string; activity_type: string }[];
+  } });
+  const [callsOpen, setCallsOpen] = useState(false);
   const acts = useQuery({ ...opts, queryKey: ["activities", "dash-recent", key, range.from, range.to], queryFn: async () => {
     let q: any = supabase.from("lead_activities").select(leadScoped ? "*, leads!inner(company_name)" : "*, leads(company_name)");
     if (leadScoped) q = leadFilters(q, f, "leads.", false);
