@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
-import { fmtDate, sumByCurrency, type LeadStatus, type Tables } from "@/lib/crm";
+import { fmtDate, type LeadStatus, type Tables } from "@/lib/crm";
 const fmtUsd = (v: number) => "US$ " + v.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 import { ACTIVITY_LABEL } from "@/lib/activity";
 import { profileName, useProfiles } from "@/lib/queries";
@@ -132,7 +132,6 @@ function Dashboard() {
   const count = (...s: LeadStatus[]) => L.filter((l) => s.includes(l.status)).length;
   const P = projects.data ?? [];
   const F = finance.data ?? [];
-  const com = (e: Tables<"financial_entries">): [number | null, string] => [e.commission_amount, "USD"];
   // Production entry = project creation; publication = last update of a published project (no dedicated timestamp exists).
   const sitesProd = P.filter((p) => p.status !== "publicado" && within(p.created_at, range)).length;
   const sitesPub = P.filter((p) => p.status === "publicado" && within(p.updated_at, range)).length;
