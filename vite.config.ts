@@ -21,7 +21,9 @@ export default defineConfig({
       manifest: false, // served from public/manifest.webmanifest
       filename: "sw.js",
       devOptions: { enabled: false },
+      outDir: "dist/client",
       workbox: {
+        globDirectory: "dist/client",
         // Only static, hashed app files. Never API/database responses.
         globPatterns: ["**/*.{js,css,woff,woff2,png,svg,ico}"],
         navigateFallback: null,
