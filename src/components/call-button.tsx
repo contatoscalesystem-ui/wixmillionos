@@ -91,7 +91,7 @@ export function CallButton({ lead, onChanged, size = "sm", variant = "outline", 
         <a href={`tel:${num}`} onClick={opened}><Phone className="mr-1 h-4 w-4" />Ligar</a>
       </Button>
       {showCopy && (
-        <Button size={size} variant="outline" className="min-h-11 sm:min-h-9" title={`Copiar ${num}`}
+        <Button size={size} variant="outline" className="col-span-2 min-h-11 sm:col-span-1 sm:min-h-9" title={`Copiar ${num}`}
           onClick={async () => { await navigator.clipboard.writeText(num); toast.success(`Número copiado: ${num}`); }}>
           <Copy className="mr-1 h-4 w-4" />Copiar número para ligação
         </Button>
