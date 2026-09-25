@@ -2,7 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { z } from "zod";
-import { Copy, ExternalLink } from "lucide-react";
+import { Copy, Download, ExternalLink, Share } from "lucide-react";
+import { useInstall } from "@/lib/pwa";
 import { useAffiliateLink } from "@/lib/script";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -33,6 +34,38 @@ function Box({ children }: { children: React.ReactNode }) {
   return <div className="rounded-lg border bg-card p-5">{children}</div>;
 }
 
+function AppInstall() {
+  const { standalone, ios, canPrompt, install } = useInstall();
+  return (
+    <Box>
+      <div className="flex items-start gap-4">
+        <img src="/pwa-192.png" alt="" className="h-14 w-14 rounded-xl" />
+        <div className="flex-1">
+          <h3 className="text-base font-bold">WIX MILLION OS</h3>
+          <p className="mt-1 text-sm text-muted-foreground">Instale o sistema neste dispositivo para acessar mais rápido, com experiência semelhante a um aplicativo.</p>
+          <div className="mt-4">
+            {standalone ? (
+              <p className="text-sm font-semibold text-primary">✓ Aplicativo instalado neste dispositivo.</p>
+            ) : canPrompt ? (
+              <Button onClick={install} className="uppercase"><Download className="mr-2 h-4 w-4" />Instalar app</Button>
+            ) : ios ? (
+              <div className="text-sm">
+                <p className="font-semibold">Para instalar no iPhone/iPad:</p>
+                <ol className="mt-1 list-decimal pl-5 text-muted-foreground">
+                  <li>toque em <Share className="inline h-4 w-4" /> Compartilhar no Safari;</li>
+                  <li>escolha "Adicionar à Tela de Início".</li>
+                </ol>
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">A instalação aparece aqui quando o navegador permitir (Chrome, Edge ou Android), no site publicado. Se o app já estiver instalado, abra-o pelo ícone.</p>
+            )}
+          </div>
+        </div>
+      </div>
+    </Box>
+  );
+}
+
 function Config() {
   const { tab } = Route.useSearch();
   return (
@@ -40,11 +73,12 @@ function Config() {
       <PageHeader title="Configurações" />
       <Tabs defaultValue={tab ?? "perfil"}>
         <TabsList className="flex h-auto flex-wrap">
-          {["perfil", "equipe", "templates", "link", "whatsapp", "integracoes", "valores"].map((t) => (
+          {["perfil", "equipe", "templates", "link", "aplicativo", "whatsapp", "integracoes", "valores"].map((t) => (
             <TabsTrigger key={t} value={t} className="capitalize">{t === "link" ? "Link de afiliado" : t === "integracoes" ? "Integrações" : t === "whatsapp" ? "WhatsApp" : t}</TabsTrigger>
           ))}
         </TabsList>
         <TabsContent value="perfil"><Profile /></TabsContent>
+        <TabsContent value="aplicativo"><AppInstall /></TabsContent>
         <TabsContent value="equipe"><Box><p className="text-sm text-muted-foreground">Membros, convites e permissões ficam na página de Equipe.</p><Button asChild className="mt-3" variant="outline"><Link to="/configuracoes/equipe">Abrir Equipe</Link></Button></Box></TabsContent>
         <TabsContent value="templates"><Templates /></TabsContent>
         <TabsContent value="link"><Affiliate /></TabsContent>
