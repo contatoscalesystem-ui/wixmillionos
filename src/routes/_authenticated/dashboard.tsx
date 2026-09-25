@@ -156,6 +156,9 @@ function Dashboard() {
   }
   const reached = FUNNEL.map((_, i) => (i === 0 ? L.length : (stageSets[i]?.size ?? 0)));
   const due = followups.data ?? [];
+  const C = calls.data ?? [];
+  const callCount = (t: string) => C.filter((c) => c.activity_type === t).length;
+  const callLeads = new Set(C.filter((c) => c.activity_type === "call_opened").map((c) => c.lead_id)).size;
 
   const stats: [string, ReactNode, LucideIcon, boolean?][] = [
     ["Total de leads", L.length, Users, true],
@@ -191,7 +194,37 @@ function Dashboard() {
             </div>
           </div>
         ))}
+        <button type="button" onClick={() => setCallsOpen((o) => !o)} aria-expanded={callsOpen}
+          className="db-card flex min-h-[64px] items-center gap-3 p-3 text-left sm:min-h-[86px] sm:gap-4 sm:p-4">
+          <IconBox icon={Phone} />
+          <div className="min-w-0">
+            <div className="truncate text-[12.5px] text-[#777771]">Ligações (tentativas)</div>
+            <div className="mt-0.5 truncate text-[20px] font-bold leading-tight tabular-nums text-[#171717] sm:text-[24px]">{callCount("call_opened")}</div>
+            <div className="truncate text-[11px] text-[#777771]">{callsOpen ? "Ocultar detalhes" : "Ver detalhes"}</div>
+          </div>
+        </button>
       </div>
+
+      {callsOpen && (
+        <section className="db-panel p-5">
+          <PanelTitle icon={Phone}>Ligações no período</PanelTitle>
+          <dl className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-4">
+            {([
+              ["Tentativas de ligação", callCount("call_opened")],
+              ["Leads ligados", callLeads],
+              ["Atenderam", callCount("call_answered")],
+              ["Não atenderam", callCount("call_no_answer")],
+              ["Ocupado", callCount("call_busy")],
+              ["Número inválido", callCount("call_invalid_number")],
+              ["Retornos solicitados", callCount("call_callback")],
+              ["Interessados por ligação", callCount("call_interested")],
+              ["Não têm interesse", callCount("call_not_interested")],
+            ] as [string, number][]).map(([l, v]) => (
+              <div key={l}><dt className="text-[12px] text-[#777771]">{l}</dt><dd className="text-lg font-bold tabular-nums text-[#171717]">{v}</dd></div>
+            ))}
+          </dl>
+        </section>
+      )}
 
       <div className="grid gap-5 lg:grid-cols-2">
         <section className="db-panel flex flex-col p-5">
