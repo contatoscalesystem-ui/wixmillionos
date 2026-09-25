@@ -1,10 +1,11 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Check, MessageCircle } from "lucide-react";
+import { Check, Copy, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { currentStage, useLeadProgress, useScriptStages, type ScriptStage } from "@/lib/script";
+import { toast } from "sonner";
+import { AFFILIATE_VAR, applyAffiliate, useAffiliateLink, currentStage, useLeadProgress, useScriptStages, type ScriptStage } from "@/lib/script";
 import { fillTemplate, normalizeBrPhone, waLink, type Lead } from "@/lib/crm";
 import { logActivity } from "@/lib/activity";
 import { cn } from "@/lib/utils";
@@ -36,7 +37,14 @@ export function LeadScriptCard({ lead }: { lead: Lead }) {
   const selStage = stages.find((s) => s.id === stageId) ?? cur ?? stages[0] ?? null;
   const msgs = useMemo(() => (selStage ? messagesOf(selStage) : []), [selStage]);
   const selMsg = msgs.find((m) => m.key === msgKey) ?? msgs[0] ?? null;
-  const filled = selMsg ? fillTemplate(selMsg.text, lead) : "";
+  const affQ = useAffiliateLink();
+  const aff = affQ.data?.affiliate_link?.trim() || null;
+  const filled = selMsg ? applyAffiliate(fillTemplate(selMsg.text, lead), aff) : "";
+  const missingAff = !aff && affQ.isFetched && !!selMsg?.text.includes(AFFILIATE_VAR);
+  const copyAff = async () => {
+    if (!aff) return;
+    try { await navigator.clipboard.writeText(aff); toast.success("Link copiado."); } catch { toast.error("Não foi possível copiar."); }
+  };
 
   // Reset the one-off edit whenever the chosen message changes (template stays untouched).
   useEffect(() => { setText(filled); setEditing(false); }, [filled]);
@@ -108,6 +116,12 @@ export function LeadScriptCard({ lead }: { lead: Lead }) {
               </>
             ) : <p className="text-sm text-muted-foreground">Esta etapa não tem mensagens cadastradas.</p>}
 
+            {missingAff && (
+              <div className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-xs">
+                <span>Link de afiliado não configurado.</span>
+                <Link to="/configuracoes" search={{ tab: "link" }} className="font-medium underline">Configurar link</Link>
+              </div>
+            )}
             {!waNum ? <p className="text-xs text-muted-foreground">Telefone não disponível.</p>
               : usingPhone && <p className="text-xs text-muted-foreground">WhatsApp não confirmado. Será usado o telefone como tentativa.</p>}
           </div>
@@ -115,6 +129,11 @@ export function LeadScriptCard({ lead }: { lead: Lead }) {
           <Button onClick={send} disabled={!waNum || !selMsg || !text.trim()} className="mt-4 w-full bg-gold text-gold-foreground hover:bg-gold/90">
             <MessageCircle className="mr-1.5 h-4 w-4" />Enviar no WhatsApp
           </Button>
+          {aff && (
+            <button type="button" onClick={copyAff} className="mt-2 flex w-full items-center justify-center gap-1.5 text-xs text-muted-foreground hover:text-foreground">
+              <Copy className="h-3.5 w-3.5" />Copiar link de afiliado
+            </button>
+          )}
           <Button asChild variant="outline" className="mt-2 w-full">
             <Link to="/script-comercial" search={{ lead: lead.id }}>Abrir roteiro</Link>
           </Button>

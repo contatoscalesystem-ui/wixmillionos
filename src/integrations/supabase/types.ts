@@ -1529,6 +1529,38 @@ export type Database = {
           },
         ]
       }
+      workspace_settings: {
+        Row: {
+          affiliate_link: string | null
+          affiliate_link_name: string
+          created_at: string
+          updated_at: string
+          workspace_id: string
+        }
+        Insert: {
+          affiliate_link?: string | null
+          affiliate_link_name?: string
+          created_at?: string
+          updated_at?: string
+          workspace_id: string
+        }
+        Update: {
+          affiliate_link?: string | null
+          affiliate_link_name?: string
+          created_at?: string
+          updated_at?: string
+          workspace_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workspace_settings_workspace_id_fkey"
+            columns: ["workspace_id"]
+            isOneToOne: true
+            referencedRelation: "workspaces"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workspaces: {
         Row: {
           created_at: string

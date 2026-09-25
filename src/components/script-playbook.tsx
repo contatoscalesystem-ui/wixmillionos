@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { Link } from "@tanstack/react-router";
 import { ArrowDown, ArrowRight, ArrowUp, Check, Copy, ExternalLink, MessageCircle, Pencil, Plus, Send, Undo2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -14,7 +15,7 @@ import { LEAD_STATUS, fillTemplate, friendlyError, normalizeBrPhone, statusLabel
 import { logActivity } from "@/lib/activity";
 import { useInvalidate } from "@/lib/queries";
 import {
-  MATERIAL_TYPES, currentStage, materialsOf, useLeadProgress, useScriptObjections, useScriptStages,
+  MATERIAL_TYPES, AFFILIATE_VAR, applyAffiliate, currentStage, useAffiliateLink, materialsOf, useLeadProgress, useScriptObjections, useScriptStages,
   type Material, type Scope, type ScriptObjection, type ScriptStage,
 } from "@/lib/script";
 
@@ -43,7 +44,9 @@ export function ScriptPlaybook({ lead, scope = "workspace", editable = false, on
   }, [stages, current?.id, selId]);
 
   const sel = stages.find((s) => s.id === selId) ?? null;
-  const fill = (t?: string | null) => (t ? (lead ? fillTemplate(t, lead) : t) : "");
+  const affQ = useAffiliateLink();
+  const aff = affQ.data?.affiliate_link?.trim() || null;
+  const fill = (t?: string | null) => (t ? applyAffiliate(lead ? fillTemplate(t, lead) : t, aff) : "");
   const waNum = lead ? normalizeBrPhone(lead.whatsapp) ?? normalizeBrPhone(lead.phone) : null;
   const stageNo = (s: ScriptStage) => pad(stages.indexOf(s) + 1);
   const refreshLead = () => { invalidate("lead_script_progress", `acts-${lead?.id}`, "activities"); };
@@ -182,6 +185,12 @@ export function ScriptPlaybook({ lead, scope = "workspace", editable = false, on
               </div>
             </div>
 
+            {!aff && affQ.isFetched && [sel.main_message, sel.variations, sel.if_no_reply].some((t) => t?.includes(AFFILIATE_VAR)) && (
+              <div className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm">
+                <span>Link de afiliado não configurado.</span>
+                <Button asChild size="sm" variant="outline"><Link to="/configuracoes" search={{ tab: "link" }}>Configurar link</Link></Button>
+              </div>
+            )}
             <MessageCard title="Mensagem principal" text={fill(sel.main_message)} lead={lead} waNum={waNum}
               onCopy={(t) => copy(t, "mensagem principal")} onWa={openWa} onSent={markSent} onNext={next} primary />
             {(sel.variations ?? "").split(/\n\s*---\s*\n/).map((v) => v.trim()).filter(Boolean).map((v, i) => (
@@ -351,7 +360,7 @@ function StageDialog({ value, scope, onClose }: { value: Partial<ScriptStage> | 
         <DialogHeader><DialogTitle>{f.id ? "Editar etapa" : "Nova etapa"}</DialogTitle></DialogHeader>
         <div className="space-y-3">
           <div className="space-y-1.5"><Label>Nome da etapa *</Label><Input value={f.name ?? ""} onChange={(e) => setF({ ...f, name: e.target.value })} /></div>
-          <p className="text-xs text-muted-foreground">Variáveis: [NOME_DA_EMPRESA], [NICHO], [CIDADE].</p>
+          <p className="text-xs text-muted-foreground">Variáveis: [NOME_DA_EMPRESA], [NICHO], [CIDADE], [LINK_AFILIADO].</p>
           {STAGE_FIELDS.map(([k, l]) => (
             <div key={k} className="space-y-1.5"><Label>{l}</Label>
               <Textarea rows={k === "main_message" || k === "variations" ? 6 : 2} value={(f[k] as string | null) ?? ""} onChange={(e) => setF({ ...f, [k]: e.target.value })} /></div>
